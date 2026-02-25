@@ -25,7 +25,7 @@ export default function RootLayout({
               </div>
               <span className="font-semibold text-lg tracking-tight text-slate-900">Proof of Backing</span>
             </div>
-            <div className="flex space-x-6">
+            <div className="flex space-x-6 items-center">
               <a href="/issuer" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
                 Issuer Dashboard
               </a>
