@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { downloadAndDecryptFromDataHaven } from "@/utils/datahaven";
 import { verifyNoirProof } from "@/utils/noir";
-import { ShieldCheck, ShieldAlert, Search, Database, LockKeyhole } from "lucide-react";
 
-export default function AuditorDashboard() {
+export default function AuditorPage() {
     const [datahavenCID, setDatahavenCID] = useState("");
     const [zkProof, setZkProof] = useState("");
     const [circulatingSupply, setCirculatingSupply] = useState<number>(5000000);
@@ -23,10 +22,7 @@ export default function AuditorDashboard() {
         setErrorMessage(null);
 
         try {
-            // 1. Fetch encrypted payload from DataHaven StorageHub
             await downloadAndDecryptFromDataHaven(datahavenCID);
-
-            // 2. Cryptographically verify the ZK Proof
             const result = await verifyNoirProof(zkProof, circulatingSupply);
 
             if (result.isValid) {
@@ -43,101 +39,182 @@ export default function AuditorDashboard() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto space-y-8">
-            <div className="border-b border-slate-200 pb-4">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2 flex items-center">
-                    <Search className="w-6 h-6 mr-3 text-blue-600" />
-                    Public Auditor Node
-                </h1>
-                <p className="text-sm text-slate-600">
-                    Independently verify circulating supply vs. protocol reserves using Noir Zero-Knowledge proofs.
-                </p>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-lg p-6 md:p-8 space-y-6">
-                <div className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold flex items-center text-slate-700">
-                            <Database className="w-4 h-4 mr-2 text-slate-500" />
-                            Declared Circulating Supply (Public Input)
-                        </label>
-                        <input
-                            type="number"
-                            value={circulatingSupply}
-                            onChange={(e) => setCirculatingSupply(Number(e.target.value))}
-                            className="w-full bg-white border border-slate-300 rounded-md px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors font-mono"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold flex items-center text-slate-700">
-                            <LockKeyhole className="w-4 h-4 mr-2 text-slate-500" />
-                            DataHaven Payload CID
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="e.g. dh-cid-..."
-                            value={datahavenCID}
-                            onChange={(e) => setDatahavenCID(e.target.value)}
-                            className="w-full bg-white border border-slate-300 rounded-md px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors font-mono text-sm"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold flex items-center text-slate-700">
-                            <ShieldCheck className="w-4 h-4 mr-2 text-slate-500" />
-                            Noir ZK Proof (Hex)
-                        </label>
-                        <textarea
-                            rows={4}
-                            placeholder="Paste cryptographic proof here..."
-                            value={zkProof}
-                            onChange={(e) => setZkProof(e.target.value)}
-                            className="w-full bg-white border border-slate-300 rounded-md px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors font-mono text-sm resize-none"
-                        />
-                    </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-200">
-                    <button
-                        onClick={handleVerify}
-                        disabled={verificationState === "loading"}
-                        className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3 rounded-md transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
-                    >
-                        {verificationState === "loading" ? "Running Core Computation..." : "Verify Cryptographic Proof"}
-                    </button>
+        <main className="main-content">
+            <div className="topbar">
+                <div>
+                    <div className="topbar-title">Public Auditor</div>
+                    <div className="topbar-sub">// Open verification · No account required</div>
                 </div>
             </div>
-
-            {/* State UI */}
-            {verificationState === "success" && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 flex flex-col items-center justify-center text-center space-y-4">
-                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
-                        <ShieldCheck className="w-8 h-8 text-emerald-600" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-emerald-800">Verified & Secure</h2>
-                    <p className="text-emerald-700 text-sm max-w-md">
-                        The mathematical proof is valid. The protocol's isolated reserve assets exceed the declared circulating supply.
-                    </p>
+            <div className="auditor-body">
+                <div className="audit-header">
+                    <h2>Verify any proof</h2>
+                    <p>Paste a DataHaven CID and ZK proof string to cryptographically verify solvency.</p>
                 </div>
-            )}
 
-            {verificationState === "failed" && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex flex-col items-center justify-center text-center space-y-4">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-2">
-                        <ShieldAlert className="w-8 h-8 text-red-600" />
+                <div className="audit-grid">
+                    <div className="ap">
+                        <div className="ap-hdr">
+                            <div className="ap-title">Submit Proof</div>
+                            <div className="ap-sub">Paste details below</div>
+                        </div>
+                        <div className="ap-body">
+                            <div className="vf">
+                                <label className="vl">DataHaven Content ID (CID)</label>
+                                <input
+                                    className="vi"
+                                    placeholder="bafybeigdyrzt5scaea..."
+                                    value={datahavenCID}
+                                    onChange={(e) => setDatahavenCID(e.target.value)}
+                                />
+                            </div>
+                            <div className="sep"></div>
+                            <div className="vf">
+                                <label className="vl">ZK Proof String</label>
+                                <textarea
+                                    className="vi"
+                                    rows={4}
+                                    placeholder="0x1a9f3c7d2e4b8f6a..."
+                                    value={zkProof}
+                                    onChange={(e) => setZkProof(e.target.value)}
+                                ></textarea>
+                            </div>
+                            <div className="vf">
+                                <label className="vl">Declared Liabilities (USD)</label>
+                                <input
+                                    className="vi"
+                                    placeholder="e.g. 11100000000"
+                                    value={circulatingSupply}
+                                    onChange={(e) => setCirculatingSupply(Number(e.target.value))}
+                                />
+                            </div>
+
+                            <button className="btn-verify zv-btn btn-green" onClick={handleVerify} disabled={verificationState === "loading"}>
+                                {verificationState === "loading" ? "Running Verification..." : "Verify Proof"}
+                            </button>
+
+                            {verificationState === "success" && (
+                                <div className="result-block show">
+                                    <div className="rb rb-green">
+                                        <div className="rb-icon">✅</div>
+                                        <div>
+                                            <div className="rb-eyebrow green">Cryptographically Verified</div>
+                                            <div className="rb-title">Fully Solvent</div>
+                                            <div className="rb-desc">ZK proof is valid. Reserves exceed declared liabilities.</div>
+                                        </div>
+                                    </div>
+                                    <div className="rm-row">
+                                        <div className="rm-cell">
+                                            <div className="rm-val green">Valid</div>
+                                            <div className="rm-lbl">Zero-Knowledge</div>
+                                        </div>
+                                        <div className="rm-cell">
+                                            <div className="rm-val green">Valid</div>
+                                            <div className="rm-lbl">Constraint System</div>
+                                        </div>
+                                        <div className="rm-cell">
+                                            <div className="rm-val" style={{ fontSize: "12px", color: "var(--text)" }}>Live</div>
+                                            <div className="rm-lbl">Network</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {verificationState === "failed" && (
+                                <div className="result-block show">
+                                    <div className="rb rb-red">
+                                        <div className="rb-icon">🚨</div>
+                                        <div>
+                                            <div className="rb-eyebrow red">Verification Failed</div>
+                                            <div className="rb-title">Insolvency Alarm</div>
+                                            <div className="rb-desc">Proof is invalid. Reserves may be insufficient or data tampered with.</div>
+                                        </div>
+                                    </div>
+                                    <div className="rm-row">
+                                        <div className="rm-cell">
+                                            <div className="rm-val red">Failed</div>
+                                            <div className="rm-lbl">ZK Proof</div>
+                                        </div>
+                                        <div className="rm-cell">
+                                            <div className="rm-val red">Mismatch</div>
+                                            <div className="rm-lbl">Integrity</div>
+                                        </div>
+                                    </div>
+                                    {errorMessage && (
+                                        <div style={{ marginTop: "10px", fontSize: "11px", color: "var(--red)", fontFamily: "monospace" }}>
+                                            Error Trace: {errorMessage}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <h2 className="text-2xl font-bold text-red-800">Verification Failed</h2>
-                    <p className="text-red-700 text-sm font-semibold max-w-md">
-                        WARNING: The zero-knowledge proof algorithm was unable to verify solvency. Either the proof is malformed, or the protocol is mathematically under-collateralized.
-                    </p>
-                    {errorMessage && (
-                        <p className="bg-white text-red-600 px-4 py-3 rounded-md text-xs font-mono mt-4 border border-red-100 w-full text-left">
-                            Trace: {errorMessage}
-                        </p>
-                    )}
+
+                    <div className="ap">
+                        <div className="ap-hdr">
+                            <div className="ap-title">How verification works</div>
+                            <div className="ap-sub">No trust required</div>
+                        </div>
+                        <div className="ap-body">
+                            <div className="how-steps">
+                                <div className="hs">
+                                    <strong>① CID lookup</strong>
+                                    <span>The DataHaven CID is fetched from the decentralized network. This proves exactly when the snapshot was recorded and guarantees no retroactive tampering.</span>
+                                </div>
+                                <div className="hs">
+                                    <strong>② Circuit verification</strong>
+                                    <span>The Noir ZK circuit receives the proof string and the public declared liabilities. It checks: total_reserves ≥ total_liabilities without revealing any private data.</span>
+                                </div>
+                                <div className="hs">
+                                    <strong>③ Result</strong>
+                                    <span>If the math holds, the exchange is provably solvent. If it fails, the alarm fires. No wallet data is ever revealed to the verifier.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            )}
-        </div>
+
+                <div className="ap audit-full">
+                    <div className="ap-hdr" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                            <div className="ap-title">Recent Public Verifications</div>
+                            <div className="ap-sub">All verifications are globally public and immutable</div>
+                        </div>
+                        <div className="sys-dot"></div>
+                    </div>
+                    <div className="al-cols">
+                        <div></div><div>CID</div><div>Coverage</div><div>Status</div><div>Time</div>
+                    </div>
+                    <div className="al-row">
+                        <div className="sdot sdot-green"></div>
+                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafybeigdyr...x4g7k2mz</div>
+                        <div style={{ color: "var(--green)", fontWeight: 700, fontSize: "12px" }}>127%</div>
+                        <div><span className="badge bg-green">✓ Valid</span></div>
+                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>2 min ago</div>
+                    </div>
+                    <div className="al-row">
+                        <div className="sdot sdot-green"></div>
+                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafyreib7x...m2n9p3kq</div>
+                        <div style={{ color: "var(--green)", fontWeight: 700, fontSize: "12px" }}>114%</div>
+                        <div><span className="badge bg-green">✓ Valid</span></div>
+                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>1 hr ago</div>
+                    </div>
+                    <div className="al-row">
+                        <div className="sdot sdot-amber"></div>
+                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafkreid9a...q8r4s1lp</div>
+                        <div style={{ color: "var(--amber)", fontWeight: 700, fontSize: "12px" }}>103%</div>
+                        <div><span className="badge bg-amber">⚠ Review</span></div>
+                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>3 hr ago</div>
+                    </div>
+                    <div className="al-row">
+                        <div className="sdot sdot-green"></div>
+                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafybeihx3...v6w1y7nt</div>
+                        <div style={{ color: "var(--green)", fontWeight: 700, fontSize: "12px" }}>139%</div>
+                        <div><span className="badge bg-green">✓ Valid</span></div>
+                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>6 hr ago</div>
+                    </div>
+                </div>
+            </div>
+        </main>
     );
 }
