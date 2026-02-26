@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import Link from 'next/link';
+import { NavBar } from '@/components/NavBar';
 
 export const metadata: Metadata = {
   title: 'ZK PROOF — Cryptographic Solvency Protocol',
@@ -57,21 +57,7 @@ export default function RootLayout({
           </div>
 
           {/* NAV */}
-          <nav>
-            <Link href="/" className="logo">
-              <div className="logo-box"></div>
-              <span className="logo-text">ZERO<span>PROOF</span></span>
-            </Link>
-            <div className="nav-center">
-              <Link href="/" className="nav-link">Overview</Link>
-              <Link href="/issuer" className="nav-link">Issuer</Link>
-              <Link href="/auditor" className="nav-link">Auditor</Link>
-            </div>
-            <div className="nav-right">
-              <div className="status-pill">ALL SYSTEMS NOMINAL</div>
-              <Link href="/history" className="nav-btn">Proof History</Link>
-            </div>
-          </nav>
+          <NavBar />
 
           {children}
 

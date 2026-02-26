@@ -1158,3 +1158,37 @@ footer {
 .panel-body {
   padding: 24px 20px;
 }
+
+/* ── Editable assets table ──────────────────────────── */
+.tbl-row {
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--border2);
+}
+
+.tbl-head {
+  display: grid;
+  padding: 10px 20px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* ── Stat flash animation ───────────────────────────── */
+@keyframes flash-update {
+  0% {
+    color: #fff;
+    text-shadow: 0 0 12px var(--green);
+  }
+
+  40% {
+    color: var(--green);
+    text-shadow: 0 0 6px var(--green);
+  }
+
+  100% {
+    color: inherit;
+    text-shadow: none;
+  }
+}
