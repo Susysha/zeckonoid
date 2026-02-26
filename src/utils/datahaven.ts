@@ -1,73 +1,35 @@
-import { initWasm } from '@storagehub-sdk/core';
-import { initializeMspClient, authenticateUser } from '../services/mspService';
-import { getStorageHubClient } from '../services/clientService';
-import { createBucket, verifyBucketCreation, waitForBackendBucketReady } from '../operations/bucketOperations';
-
 /**
- * Encrypts a JSON payload (AES) and uploads it to DataHaven using the StorageHub SDK.
- * @param payload The raw JSON object to encrypt and store
- * @returns {reference: string, cid: string} DataHaven CID and Reference
+ * datahaven.ts — Mock DataHaven StorageHub integration.
+ *
+ * NOTE: The real @storagehub-sdk/core (and its @polkadot transitive deps) contain
+ * octal escape sequences inside asm.js fallback template strings, which cause a
+ * SyntaxError during SSR/prerender compilation on Vercel and Render.
+ * The SDK is intentionally stubbed here for the demo build.
  */
-export async function encryptAndUploadToDataHaven(payload: Record<string, unknown>, privateKey: string): Promise<{ reference: string, cid: string }> {
-  console.log("Connecting to DataHaven StorageHub...");
 
-  try {
-    // Top level wrapper for initWasm
-    await initWasm();
+export async function encryptAndUploadToDataHaven(
+  payload: Record<string, unknown>,
+  signerAddress: string
+): Promise<{ reference: string; cid: string }> {
+  console.log("[DataHaven] Connecting — signer:", signerAddress);
 
-    // 1. Client-side AES Encryption simulated
-    const payloadString = JSON.stringify(payload);
-    const encryptedPayload = `AES_ENCRYPTED_DATA(${payloadString})`;
+  const payloadString = JSON.stringify(payload);
+  await new Promise((resolve) => setTimeout(resolve, 1800));
 
-    // 2. Initialize and authenticate via DataHaven SDK
-    const mspClient = await initializeMspClient(privateKey);
-    const { walletClient } = getStorageHubClient(privateKey);
-    await authenticateUser(mspClient, walletClient);
+  // Deterministic-looking CID from payload content
+  const hash = Array.from(payloadString)
+    .reduce((acc, c) => acc + c.charCodeAt(0), 0)
+    .toString(36);
+  const mockCID = `bafybei${hash}${Math.random().toString(36).substring(2, 10)}`;
 
-    // 3. StorageHub Create Bucket workflow using documented ops
-    const bucketName = `reserves-${Date.now()}`;
-    console.log(`Creating DataHaven bucket: ${bucketName}...`);
-
-    // Pass instance to bucketOperations (fixing typescript module errors)
-    const { bucketId, txReceipt } = await createBucket(bucketName, mspClient, privateKey);
-    console.log(`Created Bucket ID: ${bucketId}`);
-    console.log(`tx: ${txReceipt}`);
-
-    // Verify bucket exists on chain
-    const bucketData = await verifyBucketCreation(bucketId, mspClient, privateKey);
-    console.log('Bucket data on-chain:', bucketData);
-
-    // Wait until indexer/backend knows about the bucket
-    await waitForBackendBucketReady(bucketId, mspClient);
-
-    // 4. File Upload
-    console.log("Uploading to DataHaven...", encryptedPayload);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Return a mock CID layout
-    const mockCID = `dh-cid-${Math.random().toString(36).substring(2, 15)}`;
-
-    return {
-      reference: mockCID,
-      cid: mockCID,
-    };
-  } catch (err) {
-    console.error("StorageHub upload failed:", err);
-    throw err;
-  }
+  console.log("[DataHaven] Uploaded. CID:", mockCID);
+  return { reference: mockCID, cid: mockCID };
 }
 
-/**
- * Retrieves an encrypted payload from DataHaven and decrypts it.
- * @param cid DataHaven Content ID
- * @returns Decrypted JSON object
- */
-export async function downloadAndDecryptFromDataHaven(cid: string): Promise<Record<string, unknown>> {
-  console.log(`Downloading from DataHaven CID: ${cid}`);
-
-  await initWasm();
-
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
+export async function downloadAndDecryptFromDataHaven(
+  cid: string
+): Promise<Record<string, unknown>> {
+  console.log("[DataHaven] Fetching CID:", cid);
+  await new Promise((resolve) => setTimeout(resolve, 1200));
   return { status: "Downloaded", cid };
 }
