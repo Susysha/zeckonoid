@@ -7,7 +7,7 @@ import { useSharedState } from "@/hooks/useSharedState";
 
 export default function IssuerPage() {
     // Developer Wallet State
-    const [privateKey, setPrivateKey] = useState<string>("0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
+    const [privateKey, setPrivateKey] = useState<string>("");
 
     // Globally sync across tabs via localStorage custom hook
     const [circulatingSupply, setCirculatingSupply] = useSharedState<number>("pob-supply-v2", 5000000);
@@ -36,6 +36,16 @@ export default function IssuerPage() {
     const collateralizationRatio = ((totalReserves / circulatingSupply) * 100).toFixed(0);
 
     const handleSealAndProve = async () => {
+        if (!privateKey.trim()) {
+            alert("SECURITY HALT: Please enter your private key to sign the DataHaven upload.");
+            return;
+        }
+
+        if (!isBacked) {
+            alert(`INSOLVENCY SHUTDOWN: Total Reserves ($${(totalReserves / 1e6).toFixed(1)}M) must be greater than or equal to Declared Liabilities ($${(circulatingSupply / 1e6).toFixed(1)}M). The Zero-Knowledge circuit mathematically rejects under-collateralized proofs.`);
+            return;
+        }
+
         setIsLoading(true);
         setDatahavenCID(null);
         setZkProof(null);
