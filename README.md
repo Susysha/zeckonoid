@@ -1,120 +1,99 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/ojasv/proof-of-backing/main/public/logo.jpg" alt="ZeroVault Logo" width="150" height="auto" />
-  <h1>ZeroVault: Cryptographic Proof of Reserves</h1>
-  <p><em>The Next-Generation, Real-Time Solvency Engine for Cryptocurrency Exchanges.</em></p>
+  <img src="https://images.unsplash.com/photo-1639762681485-074b7f4ecbec?q=80&w=2832&auto=format&fit=crop" alt="ZeroVault Terminal" width="800" style="border-radius: 8px; margin-bottom: 20px;" />
+  <h1>ZERO PROOF: Cryptographic Solvency Protocol</h1>
+  <p><em>The Next-Generation, Zero-Knowledge Solvency Engine for Cryptocurrency Exchanges.</em></p>
+  
+  <p>
+    <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js" alt="Next.js" /></a>
+    <a href="https://noir-lang.org/"><img src="https://img.shields.io/badge/Noir-v0.31-blue?style=flat-square" alt="Noir" /></a>
+    <a href="https://ethereum.org/"><img src="https://img.shields.io/badge/Network-Sepolia_Testnet-627EEA?style=flat-square&logo=ethereum" alt="Sepolia Testnet" /></a>
+  </p>
 </div>
 
 ---
 
-## 🚨 The Problem: The "Static Audit" Illusion
+## 🚨 The End of "Trust Me"
 
-The collapse of massive cryptocurrency exchanges like FTX revealed a fatal flaw in how the industry handles solvency and audits. 
+The collapse of massive cryptocurrency exchanges revealed a fatal flaw in how the industry handles solvency and audits: **Snapshot audits cannot protect users from real-time market volatility.**
 
-Historically, "Proof of Reserves" has relied on two flawed methods:
-1. **The "Proof of Fiat" (Accounting Firms):** A centralized accounting firm publishes a PDF claiming the exchange is solvent at a specific *snapshot in time*. (e.g., Tuesday at 5 PM). 
-2. **The "Cold Wallet Dump":** Exchanges publish a list of their cold wallet addresses. While this proves they have *assets*, it completely hides their *liabilities* (what they actually owe users).
+A centralized accounting firm claiming an exchange is solvent on a Tuesday means nothing if collateral crashes on Wednesday. Furthermore, publishing "Cold Wallet Dumps" only proves assets exist; it completely hides the institutional liabilities.
 
-**The Fatal Flaw:** Audits are static. An exchange can be mathematically solvent on Tuesday, but if their collateral tokens crash on Wednesday, they are instantly bankrupt. *Snapshot audits cannot protect users from real-time market volatility.*
+## 💡 The Inevitable Standard: Real-Time ZK-PoR
 
----
+**Zero Proof** is an elite, mathematical zero-knowledge dashboard designed to cryptographically guarantee the solvency of exchanges on-chain, utilizing the **Ethereum Sepolia Testnet**.
 
-## 💡 The Solution: Real-Time ZK-PoR
+By combining **Zero-Knowledge Cryptography (Noir)**, **Decentralized Storage (DataHaven)**, and **Live Oracles**, Zero Proof proves mathematically that `Assets >= Liabilities` in real-time without ever revealing sensitive proprietary data (wallet addresses, exact balances, or trade history).
 
-**ZeroVault** is an enterprise-grade dashboard designed to continuously and cryptographically guarantee the solvency of exchanges.
+### 🌟 Core Protocol Architecture
 
-By combining **Zero-Knowledge Cryptography (Noir)**, **Decentralized Storage (DataHaven)**, and **Live Oracles**, ZeroVault proves mathematically that `Assets >= Liabilities` in real-time without ever revealing sensitive proprietary data.
-
-### 🌟 Key Features
-
-#### 1. Real-Time Oracle & DEX Aggregation
-ZeroVault doesn't wait for a monthly audit. We built a live **Oracle & DEX Price Feed aggregator** directly into the dashboard. As the price of collateral assets fluctuates (e.g., experiencing a real-time BTC price crash), the system dynamically recalculates the exchange's backing ratio. If the live reserves ever drop below the circulating supply, the system instantly triggers an insolvency alarm and halts new ZK proofs.
+#### 1. Real-Time Oracle & DEX Aggregation 
+Zero Proof doesn't wait for a monthly audit. We built a live **Oracle Feed aggregator** directly into the issuer dashboard. As the price of collateral assets fluctuates (e.g., experiencing a real-time BTC flash crash), the system dynamically recalculates the exchange's backing ratio. If the live reserves ever drop below the circulating supply, the system instantly triggers an insolvency alarm and mathematically halts the generation of new ZK proofs.
 
 #### 2. The Zero-Knowledge Engine (Noir)
 Our cryptographic engine is built using **Noir** (`circuit/src/main.nr`). 
-The circuit takes the exchange's private `Reserve Arrays` and public `Liabilities` as inputs. It runs the mathematical constraints inside a locally-generated SNARK. If fully backed, it generates an unforgeable Proof Hash, keeping the exact asset numbers completely hidden from the public eye.
+The circuit takes the exchange's private `Reserve Arrays` and public `Liabilities` as inputs. It runs the mathematical constraints inside a locally-generated SNARK. If fully backed, it generates an unforgeable Proof Hash in under ~20ms, keeping the exact asset numbers completely hidden from the public eye.
 
-#### 3. Decentralized Storage (DataHaven StorageHub)
-We eliminate the "AWS S3" centralization vector. During validation, the exact JSON snapshot of the reserves and liabilities is encrypted and pushed directly to the **DataHaven Decentralized Storage Network**. The resulting `CID` (Content Identifier) acts as an immutable receipt of the backend state.
+#### 3. Decentralized Artifacts (DataHaven)
+We eliminate the Web2 centralization vector. During validation, the exact JSON snapshot of the reserves and liabilities is encrypted via AES-256 and pushed directly to the **DataHaven Decentralized Storage Network**. The resulting `CID` (Content Identifier) acts as an immutable receipt of the backend state.
 
-#### 4. Immutable On-Chain Anchoring (Ethereum)
-ZeroVault integrates directly with **viem** and **MetaMask**. Once the ZK Proof is generated and the DataHaven `CID` is secured, the dashboard transforms them into HEX calldata. The Exchange Administrator broadcasts this directly to the **Ethereum Network** (Sepolia Testnet), anchoring a private ZK audit onto a permanent, public blockchain ledger.
+#### 4. Immutable On-Chain Anchoring (Ethereum Sepolia Testnet)
+Zero Proof integrates directly with **viem** and **MetaMask** against the **Sepolia Testnet**. Once the ZK Proof is generated and the DataHaven `CID` is secured, the dashboard transforms them into HEX calldata. The Exchange Administrator broadcasts this directly to the Ethereum Testnet ledger, anchoring a private ZK audit permanently on-chain.
 
 ---
 
-## 🛠️ The Tech Stack
+## 🛠️ The Mathematics Stack
 
-| Technology | Purpose |
+| Primitive | Implementation Details |
 |------------|---------|
-| **Next.js (App Router)** | High-performance React framework for the dashboard |
-| **Tailwind CSS v4** | Enterprise-grade B2B Slate styling and responsive grid |
-| **Noir / Barretenberg** | The Zero-Knowledge Prover & Verifier circuits (`main.nr`) |
-| **DataHaven SDK** | Encrypting and sealing snapshots to decentralized storage |
-| **Viem & MetaMask** | Ethereum JSON-RPC connections for on-chain anchoring |
-| **React Hooks** | Real-time global state syncing across the Oracle and UI |
+| **Next.js (App Router)** | High-performance React framework for the execution environment. |
+| **Elite UI Framework** | Brutalist, typography-driven UI built on `IBM Plex Mono` & `Bebas Neue`. |
+| **Noir / Barretenberg** | The Zero-Knowledge Prover & Verifier circuits ensuring `Assets >= Liabilities`. |
+| **DataHaven SDK** | Encrypting and sealing snapshots to decentralized storage nodes. |
+| **Viem & MetaMask** | Ethereum JSON-RPC connections for **Sepolia Testnet** integration. |
 
 ---
 
-## 💻 Running the Application
+## 💻 Initializing the Node
 
-### 1. Spin Up DataHaven Local Devnet
-ZeroVault relies on a local DataHaven StorageHub node. To spin it up, clone the official repository and start the devnet using Docker:
+### 1. Sepolia Testnet Configuration
+This application natively defaults to the **Ethereum Sepolia Testnet**. You must have a Web3 Wallet (like MetaMask) installed in your browser and connected to the Sepolia network. 
 
-\`\`\`bash
-# Clone the StorageHub repository
-git clone https://github.com/Moonsong-Labs/storage-hub.git
-cd storage-hub/test
+Ensure you have Sepolia test ETH for gas fees before attempting to anchor a proof on-chain.
 
-# Install dependencies and pull Docker images
-pnpm i
-docker pull --platform linux/amd64 moonsonglabs/storage-hub:latest
-docker tag moonsonglabs/storage-hub:latest storage-hub:local
-docker pull --platform linux/amd64 moonsonglabs/storage-hub-msp-backend:latest
-docker tag moonsonglabs/storage-hub-msp-backend:latest sh-msp-backend:local
-
-# Start the local solochain-evm devnet
-pnpm docker:start:solochain-evm:initialised
-\`\`\`
-*(Wait for the "✅ Solochain EVM Bootstrap success" message before proceeding).*
-
-### 2. Start the ZeroVault Dashboard
-Once the DataHaven devnet is running on port 8080/9666, open a new terminal window to run the ZeroVault dashboard:
+### 2. Bootstrapping the Dashboard
+Clone the repository and spin up the local development interface:
 
 \`\`\`bash
-# Clone the ZeroVault repository
+# Clone the repository
 git clone https://github.com/yourusername/proof-of-backing.git
 cd proof-of-backing
 
-# Install dependencies and start the local development server
+# Install dependencies
 npm install
+
+# Start the execution engine
 npm run dev
-# The application will be live at http://localhost:3000
+
+# Sub-systems will be live at http://localhost:3000
 \`\`\`
 
-### 3. The End-to-End Flow
-1. Navigate to `http://localhost:3000/issuer`.
-2. Play with the **Live Oracle Sidebar** to aggregate real-time market volatility and watch the Reserve Assets dynamically update.
-3. Click **Encrypt, Seal to DataHaven & Generate Proof**.
-4. Once the Noir proof logic succeeds, click **Confirm On-Chain Anchor**.
-5. Sign the MetaMask popup bridging the Proof and CID onto the Ethereum ledger.
-6. Navigate to the `/history` tab to view the public Etherscan blockchain receipt!
+### 3. Execution Flow
+1. Navigate to **`http://localhost:3000`** and enter the **Issuer Node**.
+2. Input your Sepolia-funded private key to authorize the DataHaven upload.
+3. Play with the **Live Oracle Sidebar** to aggregate real-time market volatility. Simulating a flash crash below 100% coverage will automatically trigger a `SECURITY HALT` and prevent proof generation.
+4. If solvent, click **Run Engine**. This will seamlessly:
+   - Encrypt state data and upload to DataHaven.
+   - Execute the Noir ZK-SNARK circuit.
+5. Click **Confirm On-Chain Anchor** to sign the MetaMask transaction bridging the artifacts onto the Sepolia Testnet.
+6. Navigate to the **Auditor Node** to allow public users to cryptographically verify the hash, or visit the **Proof Ledger** to synthesize an un-biased, AI-driven Audit Report natively from the proofs.
 
 ---
 
-## 🤖 The Next Evolution: Automated AI Audit Generation (RAG)
+## 🤖 The Ultimate Synthesis: AI RAG Auditing
 
-While Zero-Knowledge mathematics provide absolute cryptographic certainty, raw hexadecimal hashes and Noir circuits are unreadable to retail investors and regulators. The next major integration for ZeroVault is an **Automated AI Auditor** powered by a RAG (Retrieval-Augmented Generation) pipeline utilizing **Google Gemini 1.5 Pro**.
+While Zero-Knowledge mathematics provide absolute cryptographic certainty, raw hexadecimal hashes and Noir circuits are unreadable to retail investors and regulators. To bridge this gap, Zero Proof implements an **Automated AI Auditor** utilizing a RAG (Retrieval-Augmented Generation) pipeline.
 
-Instead of relying on a human accountant to write a subjective monthly report, our system uses the Gemini LLM to generate instant, objective, legally-formatted audit reports dynamically.
+Instead of relying on a human accountant to write a subjective monthly report, our system dynamically generates instant, objective, legally-formatted audit reports.
 
-**The RAG Architecture & Zero-Knowledge Security:**
-Providing live exchange data directly to an LLM would be a massive security leak. However, because ZeroVault is built on ZK-SNARKs, the AI Auditor has **zero security risk**. The Gemini model is *never* given access to private cold wallet addresses or individual user liability records. It is solely fed the public cryptographic outputs:
-
-1. **The Context Window (Retrieval):** The AI continuously ingests real-time structured data from the ZeroVault pipeline:
-   - The verified DataHaven `CID` AES-encrypted snapshots.
-   - The historical Ethereum Sepolia transaction receipts.
-   - The live DEX aggregation feeds and historical volatility metrics.
-   - The mathematical Boolean output of the `main.nr` ZK Circuit.
-2. **The Output (Generation):** Rather than acting as a chatbot, the **Gemini 1.5 Pro** synthesis engine uses this massive context window to automatically generate a comprehensive **"Proof of Reserves Audit Report" (PDF/HTML)**. 
-3. **The Result:** When a regulator or user clicks "Generate Audit," the RAG model outputs a professional, deeply contextualized financial document. It explains the cryptographic backing ratio, highlights any recent Oracle-triggered volatility stress tests, and translates the complex ZK mathematics into an accessible, institutional-grade compliance report—generated entirely by code, without human bias or data leakage.
-
-
+**Zero-Knowledge Context Window:**
+Because the architecture is built on ZK-SNARKs and encrypted DataHaven blobs, there is **zero security risk**. The LLM is never given access to private cold wallet addresses. It is solely fed the public cryptographic outputs (the CID, the TxHash, the Coverage Ratio, block timestamps) to automatically synthesize an accessible, institutional-grade compliance document with zero human bias.
