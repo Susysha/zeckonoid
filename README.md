@@ -98,4 +98,23 @@ npm run dev
 5. Sign the MetaMask popup bridging the Proof and CID onto the Ethereum ledger.
 6. Navigate to the `/history` tab to view the public Etherscan blockchain receipt!
 
+---
+
+## 🤖 The Next Evolution: Automated AI Audit Generation (RAG)
+
+While Zero-Knowledge mathematics provide absolute cryptographic certainty, raw hexadecimal hashes and Noir circuits are unreadable to retail investors and regulators. The next major integration for ZeroVault is an **Automated AI Auditor** powered by a RAG (Retrieval-Augmented Generation) pipeline utilizing **Google Gemini 1.5 Pro**.
+
+Instead of relying on a human accountant to write a subjective monthly report, our system uses the Gemini LLM to generate instant, objective, legally-formatted audit reports dynamically.
+
+**The RAG Architecture & Zero-Knowledge Security:**
+Providing live exchange data directly to an LLM would be a massive security leak. However, because ZeroVault is built on ZK-SNARKs, the AI Auditor has **zero security risk**. The Gemini model is *never* given access to private cold wallet addresses or individual user liability records. It is solely fed the public cryptographic outputs:
+
+1. **The Context Window (Retrieval):** The AI continuously ingests real-time structured data from the ZeroVault pipeline:
+   - The verified DataHaven `CID` AES-encrypted snapshots.
+   - The historical Ethereum Sepolia transaction receipts.
+   - The live DEX aggregation feeds and historical volatility metrics.
+   - The mathematical Boolean output of the `main.nr` ZK Circuit.
+2. **The Output (Generation):** Rather than acting as a chatbot, the **Gemini 1.5 Pro** synthesis engine uses this massive context window to automatically generate a comprehensive **"Proof of Reserves Audit Report" (PDF/HTML)**. 
+3. **The Result:** When a regulator or user clicks "Generate Audit," the RAG model outputs a professional, deeply contextualized financial document. It explains the cryptographic backing ratio, highlights any recent Oracle-triggered volatility stress tests, and translates the complex ZK mathematics into an accessible, institutional-grade compliance report—generated entirely by code, without human bias or data leakage.
+
 

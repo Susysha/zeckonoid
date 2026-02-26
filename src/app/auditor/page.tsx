@@ -39,181 +39,159 @@ export default function AuditorPage() {
     };
 
     return (
-        <main className="main-content">
-            <div className="topbar">
+        <main className="app-content">
+            <div className="sec-hdr" style={{ marginBottom: '40px' }}>
                 <div>
-                    <div className="topbar-title">Public Auditor</div>
-                    <div className="topbar-sub">// Open verification · No account required</div>
+                    <div className="sec-num">// AUDITOR NODE</div>
+                    <div className="sec-title">Verify Any <span className="hl">Proof</span></div>
+                </div>
+                <div className="sec-meta">
+                    Open verification · No account required. Zero trust architecture.
                 </div>
             </div>
-            <div className="auditor-body">
-                <div className="audit-header">
-                    <h2>Verify any proof</h2>
-                    <p>Paste a DataHaven CID and ZK proof string to cryptographically verify solvency.</p>
-                </div>
 
-                <div className="audit-grid">
-                    <div className="ap">
-                        <div className="ap-hdr">
-                            <div className="ap-title">Submit Proof</div>
-                            <div className="ap-sub">Paste details below</div>
+            <div className="live-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) 400px', alignItems: 'start' }}>
+
+                {/* LEFT COL: Verification Form */}
+                <div className="main-col">
+                    <div className="panel" style={{ marginBottom: '40px' }}>
+                        <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Submit Zero-Knowledge Proof</span>
+                            <span style={{ color: 'var(--green)' }}>● ON-CHAIN VALIDATION</span>
                         </div>
-                        <div className="ap-body">
-                            <div className="vf">
-                                <label className="vl">DataHaven Content ID (CID)</label>
+                        <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+                            <div>
+                                <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.1em' }}>DATAHAVEN CONTENT ID (CID)</div>
                                 <input
-                                    className="vi"
+                                    className="form-input"
                                     placeholder="bafybeigdyrzt5scaea..."
                                     value={datahavenCID}
                                     onChange={(e) => setDatahavenCID(e.target.value)}
                                 />
                             </div>
-                            <div className="sep"></div>
-                            <div className="vf">
-                                <label className="vl">ZK Proof String</label>
+
+                            <div>
+                                <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.1em' }}>NOIR ZK PROOF STRING</div>
                                 <textarea
-                                    className="vi"
+                                    className="form-input"
                                     rows={4}
+                                    style={{ resize: 'vertical' }}
                                     placeholder="0x1a9f3c7d2e4b8f6a..."
                                     value={zkProof}
                                     onChange={(e) => setZkProof(e.target.value)}
                                 ></textarea>
                             </div>
-                            <div className="vf">
-                                <label className="vl">Declared Liabilities (USD)</label>
+
+                            <div>
+                                <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.1em' }}>DECLARED LIABILITIES (USD)</div>
                                 <input
-                                    className="vi"
-                                    placeholder="e.g. 11100000000"
+                                    className="form-input"
+                                    placeholder="e.g. 5000000"
                                     value={circulatingSupply}
                                     onChange={(e) => setCirculatingSupply(Number(e.target.value))}
                                 />
                             </div>
 
-                            <button className="btn-verify zv-btn btn-green" onClick={handleVerify} disabled={verificationState === "loading"}>
-                                {verificationState === "loading" ? "Running Verification..." : "Verify Proof"}
+                            <button
+                                className="nav-btn"
+                                onClick={handleVerify}
+                                disabled={verificationState === "loading"}
+                                style={{ width: '100%', padding: '16px', background: verificationState === 'loading' ? 'transparent' : 'var(--green)', color: verificationState === 'loading' ? 'var(--green)' : '#000', fontSize: '12px' }}
+                            >
+                                {verificationState === "loading" ? "● RUNNING VERIFICATION NODE..." : "→ VERIFY PROOF"}
                             </button>
 
                             {verificationState === "success" && (
-                                <div className="result-block show">
-                                    <div className="rb rb-green">
-                                        <div className="rb-icon">✅</div>
-                                        <div>
-                                            <div className="rb-eyebrow green">Cryptographically Verified</div>
-                                            <div className="rb-title">Fully Solvent</div>
-                                            <div className="rb-desc">ZK proof is valid. Reserves exceed declared liabilities.</div>
-                                        </div>
-                                    </div>
-                                    <div className="rm-row">
-                                        <div className="rm-cell">
-                                            <div className="rm-val green">Valid</div>
-                                            <div className="rm-lbl">Zero-Knowledge</div>
-                                        </div>
-                                        <div className="rm-cell">
-                                            <div className="rm-val green">Valid</div>
-                                            <div className="rm-lbl">Constraint System</div>
-                                        </div>
-                                        <div className="rm-cell">
-                                            <div className="rm-val" style={{ fontSize: "12px", color: "var(--text)" }}>Live</div>
-                                            <div className="rm-lbl">Network</div>
-                                        </div>
+                                <div className="proof-panel" style={{ marginTop: '10px', gridTemplateColumns: '1fr', borderColor: 'var(--green)' }}>
+                                    <div className="code-hdr" style={{ background: 'var(--green-dim)', borderBottomColor: 'var(--green)' }}><span>RESULT</span><span style={{ color: 'var(--green)' }}>● 100% SOLVENT</span></div>
+                                    <div className="code-body" style={{ background: 'rgba(0,255,136,0.02)' }}>
+                                        <div className="code-line"><span className="kw">STATUS:</span> <span className="fn">✅ CRYPTOGRAPHICALLY VERIFIED</span></div>
+                                        <div className="code-line"><span className="kw">DETAIL:</span> <span className="tc">ZK circuit executed normally.</span></div>
+                                        <div className="code-line"><span className="kw">ASSERT:</span> <span className="tc">Reserves {"≥"} Declared Liabilities</span></div>
+                                        <div className="code-line"><span className="kw">LATENCY:</span> <span className="tc">14ms</span></div>
                                     </div>
                                 </div>
                             )}
 
                             {verificationState === "failed" && (
-                                <div className="result-block show">
-                                    <div className="rb rb-red">
-                                        <div className="rb-icon">🚨</div>
-                                        <div>
-                                            <div className="rb-eyebrow red">Verification Failed</div>
-                                            <div className="rb-title">Insolvency Alarm</div>
-                                            <div className="rb-desc">Proof is invalid. Reserves may be insufficient or data tampered with.</div>
-                                        </div>
+                                <div className="proof-panel" style={{ marginTop: '10px', gridTemplateColumns: '1fr', borderColor: 'var(--red)' }}>
+                                    <div className="code-hdr" style={{ background: 'rgba(204,51,51,0.1)', borderBottomColor: 'var(--red)' }}><span>RESULT</span><span style={{ color: 'var(--red)' }}>🚨 ALARM TRIGGERED</span></div>
+                                    <div className="code-body" style={{ background: 'rgba(204,51,51,0.05)' }}>
+                                        <div className="code-line"><span className="kw" style={{ color: 'var(--red)' }}>STATUS:</span> <span className="tc" style={{ color: 'var(--red)' }}>VERIFICATION FAILED</span></div>
+                                        <div className="code-line"><span className="kw" style={{ color: 'var(--red)' }}>DETAIL:</span> <span className="tc">Proof is invalid or tampered with.</span></div>
+                                        <div className="code-line"><span className="kw" style={{ color: 'var(--red)' }}>ASSERT:</span> <span className="tc">Reserves {"<"} Liabilities</span></div>
+                                        {errorMessage && <div className="code-line"><span className="kw" style={{ color: 'var(--red)' }}>TRACE:</span> <span className="tc">{errorMessage}</span></div>}
                                     </div>
-                                    <div className="rm-row">
-                                        <div className="rm-cell">
-                                            <div className="rm-val red">Failed</div>
-                                            <div className="rm-lbl">ZK Proof</div>
-                                        </div>
-                                        <div className="rm-cell">
-                                            <div className="rm-val red">Mismatch</div>
-                                            <div className="rm-lbl">Integrity</div>
-                                        </div>
-                                    </div>
-                                    {errorMessage && (
-                                        <div style={{ marginTop: "10px", fontSize: "11px", color: "var(--red)", fontFamily: "monospace" }}>
-                                            Error Trace: {errorMessage}
-                                        </div>
-                                    )}
                                 </div>
                             )}
+
+                        </div>
+                    </div>
+                </div>
+
+                {/* RIGHT COL: Verification Feed & info */}
+                <div className="sidebar" style={{ gap: '24px', background: 'transparent' }}>
+
+                    <div className="panel">
+                        <div className="panel-header">How it works</div>
+                        <div className="panel-body">
+                            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '20px', fontSize: '11px', color: 'var(--muted)', lineHeight: 1.8 }}>
+                                <li>
+                                    <strong style={{ color: 'var(--text)', display: 'block', marginBottom: '4px' }}>① CID Lookup</strong>
+                                    The DataHaven CID is fetched from the network, providing timestamp integrity and tamper-proofing.
+                                </li>
+                                <li>
+                                    <strong style={{ color: 'var(--text)', display: 'block', marginBottom: '4px' }}>② Circuit Verification</strong>
+                                    Noir runs the zk-SNARK verifier against the public liabilities. It asserts <span style={{ color: 'var(--green)' }}>reserves {"≥"} liabilities</span> internally.
+                                </li>
+                                <li>
+                                    <strong style={{ color: 'var(--text)', display: 'block', marginBottom: '4px' }}>③ Zero Trust Math</strong>
+                                    Exchange addresses and balances are NEVER revealed. The proof string alone is enough to guarantee solvency.
+                                </li>
+                            </ul>
                         </div>
                     </div>
 
-                    <div className="ap">
-                        <div className="ap-hdr">
-                            <div className="ap-title">How verification works</div>
-                            <div className="ap-sub">No trust required</div>
+                    <div className="panel">
+                        <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Recent Audits</span>
+                            <span style={{ color: 'var(--green)' }}>GLOBAL P2P</span>
                         </div>
-                        <div className="ap-body">
-                            <div className="how-steps">
-                                <div className="hs">
-                                    <strong>① CID lookup</strong>
-                                    <span>The DataHaven CID is fetched from the decentralized network. This proves exactly when the snapshot was recorded and guarantees no retroactive tampering.</span>
+                        <div className="proof-table" style={{ border: 'none', borderTop: '1px solid var(--border2)' }}>
+                            <div className="tbl-row" style={{ gridTemplateColumns: 'min-content 1fr', gap: '16px' }}>
+                                <div className="rs ok">OK</div>
+                                <div>
+                                    <div style={{ color: 'var(--green)', fontWeight: 600 }}>127% COVERAGE</div>
+                                    <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '2px' }}>bafybeig...x4g7 · 2m ago</div>
                                 </div>
-                                <div className="hs">
-                                    <strong>② Circuit verification</strong>
-                                    <span>The Noir ZK circuit receives the proof string and the public declared liabilities. It checks: total_reserves ≥ total_liabilities without revealing any private data.</span>
+                            </div>
+                            <div className="tbl-row" style={{ gridTemplateColumns: 'min-content 1fr', gap: '16px' }}>
+                                <div className="rs ok">OK</div>
+                                <div>
+                                    <div style={{ color: 'var(--green)', fontWeight: 600 }}>114% COVERAGE</div>
+                                    <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '2px' }}>bafyreib...m2n9 · 1h ago</div>
                                 </div>
-                                <div className="hs">
-                                    <strong>③ Result</strong>
-                                    <span>If the math holds, the exchange is provably solvent. If it fails, the alarm fires. No wallet data is ever revealed to the verifier.</span>
+                            </div>
+                            <div className="tbl-row" style={{ gridTemplateColumns: 'min-content 1fr', gap: '16px' }}>
+                                <div className="rs pd" style={{ color: 'var(--red)' }}>FAIL</div>
+                                <div>
+                                    <div style={{ color: 'var(--red)', fontWeight: 600 }}>103% COVERAGE (FLAG)</div>
+                                    <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '2px' }}>bafkreid...q8r4 · 3h ago</div>
+                                </div>
+                            </div>
+                            <div className="tbl-row" style={{ gridTemplateColumns: 'min-content 1fr', gap: '16px' }}>
+                                <div className="rs ok">OK</div>
+                                <div>
+                                    <div style={{ color: 'var(--green)', fontWeight: 600 }}>139% COVERAGE</div>
+                                    <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '2px' }}>bafybeih...v6w1 · 6h ago</div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
 
-                <div className="ap audit-full">
-                    <div className="ap-hdr" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div>
-                            <div className="ap-title">Recent Public Verifications</div>
-                            <div className="ap-sub">All verifications are globally public and immutable</div>
-                        </div>
-                        <div className="sys-dot"></div>
-                    </div>
-                    <div className="al-cols">
-                        <div></div><div>CID</div><div>Coverage</div><div>Status</div><div>Time</div>
-                    </div>
-                    <div className="al-row">
-                        <div className="sdot sdot-green"></div>
-                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafybeigdyr...x4g7k2mz</div>
-                        <div style={{ color: "var(--green)", fontWeight: 700, fontSize: "12px" }}>127%</div>
-                        <div><span className="badge bg-green">✓ Valid</span></div>
-                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>2 min ago</div>
-                    </div>
-                    <div className="al-row">
-                        <div className="sdot sdot-green"></div>
-                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafyreib7x...m2n9p3kq</div>
-                        <div style={{ color: "var(--green)", fontWeight: 700, fontSize: "12px" }}>114%</div>
-                        <div><span className="badge bg-green">✓ Valid</span></div>
-                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>1 hr ago</div>
-                    </div>
-                    <div className="al-row">
-                        <div className="sdot sdot-amber"></div>
-                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafkreid9a...q8r4s1lp</div>
-                        <div style={{ color: "var(--amber)", fontWeight: 700, fontSize: "12px" }}>103%</div>
-                        <div><span className="badge bg-amber">⚠ Review</span></div>
-                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>3 hr ago</div>
-                    </div>
-                    <div className="al-row">
-                        <div className="sdot sdot-green"></div>
-                        <div className="mono" style={{ fontSize: "11px", color: "var(--emerald)" }}>bafybeihx3...v6w1y7nt</div>
-                        <div style={{ color: "var(--green)", fontWeight: 700, fontSize: "12px" }}>139%</div>
-                        <div><span className="badge bg-green">✓ Valid</span></div>
-                        <div style={{ fontSize: "11px", color: "var(--text3)" }}>6 hr ago</div>
-                    </div>
-                </div>
             </div>
         </main>
     );

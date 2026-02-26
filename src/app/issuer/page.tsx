@@ -69,8 +69,6 @@ export default function IssuerPage() {
                 } else {
                     alert(`On-Chain Anchor failed: ${anchorErr?.message || "Unknown error"}. The proof was still saved locally.`);
                 }
-                // We don't throw here, so the proof is still saved to history (just without a txHash).
-                // The user can retry manually via the handleAnchorOnChain button.
             }
             setIsAnchoring(false);
 
@@ -98,20 +96,15 @@ export default function IssuerPage() {
         setIsAnchoring(true);
 
         try {
-            // Dynamically import to avoid SSR issues with window.ethereum
             const { anchorProofOnChain } = await import('@/utils/anchoring');
             const hash = await anchorProofOnChain(datahavenCID, zkProof);
-
             setAnchoredTx(hash);
-
-            // Update the latest history item with the txHash
             setProofHistory(prev => {
                 if (prev.length === 0) return prev;
                 const newHistory = [...prev];
                 newHistory[0] = { ...newHistory[0], txHash: hash };
                 return newHistory;
             });
-
         } catch (e: any) {
             console.error(e);
             alert(e.message || "Error anchoring to blockchain. Ensure your wallet is connected to Sepolia.");
@@ -132,237 +125,141 @@ export default function IssuerPage() {
     };
 
     return (
-        <main className="main-content">
-            <div className="topbar">
+        <main className="app-content">
+            <div className="sec-hdr" style={{ marginBottom: '40px' }}>
                 <div>
-                    <div className="topbar-title">Issue Proof · Organization</div>
-                    <div className="topbar-sub">// Encrypt → Upload → Prove → Anchor</div>
+                    <div className="sec-num">// ISSUER NODE</div>
+                    <div className="sec-title">Generate <span className="hl">Proof</span></div>
                 </div>
-                <div className="topbar-right">
-                    <button className="zv-btn btn-ghost">Import CSV</button>
-                    <button className="zv-btn btn-ghost">Save Draft</button>
-                    <button className="zv-btn btn-sim" onClick={handleSealAndProve} disabled={isLoading}>
-                        {isLoading ? "Generating..." : "▶ Run Proof Engine"}
+                <div className="sec-meta">
+                    <button className="btn-primary" onClick={handleSealAndProve} disabled={isLoading} style={{ fontSize: '10px', padding: '10px 20px' }}>
+                        {isLoading ? "● PROCESSING..." : "→ RUN ENGINE"}
                     </button>
                 </div>
             </div>
-            <div className="issuer-body">
-                <div className="issuer-main">
-                    <div className="metric-strip">
-                        <div className="mc">
-                            <div className="mc-label">Total Liabilities</div>
-                            <div className="mc-value amber">${(circulatingSupply / 1e6).toFixed(1)}M</div>
-                            <div className="mc-sub">Declared obligations</div>
-                        </div>
-                        <div className="mc">
-                            <div className="mc-label">Reserve Assets</div>
-                            <div className="mc-value green">${(totalReserves / 1e6).toFixed(1)}M</div>
-                            <div className="mc-sub">{reserves.length} wallets declared</div>
-                        </div>
-                        <div className="mc">
-                            <div className="mc-label">Coverage Ratio</div>
-                            <div className={`mc-value ${isBacked ? 'green' : 'red'}`}>{collateralizationRatio}%</div>
-                            <div className="mc-sub">{isBacked ? 'Above threshold' : 'Insolvent!'}</div>
-                        </div>
-                        <div className="mc">
-                            <div className="mc-label">Proof Status</div>
-                            <div className="mc-value muted">{isLoading ? 'Processing...' : 'Ready to Generate'}</div>
-                            <div className="mc-sub">All inputs valid</div>
-                        </div>
-                    </div>
 
-                    <div className="fblock">
-                        <div className="fb-hdr">
-                            <div>
-                                <div className="fb-title">Liability Declaration</div>
-                                <div className="fb-sub">Public input — included in proof output</div>
-                            </div>
-                            <span className="fb-tag">public_input</span>
+            <div className="stats-bar" style={{ marginBottom: '40px', background: 'var(--bg1)' }}>
+                <div className="stat-cell vis">
+                    <div className="sl">Total Liabilities</div>
+                    <div className="sv" style={{ color: 'var(--red)' }}>{(circulatingSupply / 1e6).toFixed(1)}<span className="u">M</span></div>
+                    <div className="sc dn">Declared obligations</div>
+                </div>
+                <div className="stat-cell vis">
+                    <div className="sl">Reserve Assets</div>
+                    <div className="sv">{(totalReserves / 1e6).toFixed(1)}<span className="u">M</span></div>
+                    <div className="sc up">{reserves.length} wallets declared</div>
+                </div>
+                <div className="stat-cell vis">
+                    <div className="sl">Coverage Ratio</div>
+                    <div className="sv" style={{ color: isBacked ? 'var(--green)' : 'var(--red)' }}>{collateralizationRatio}<span className="u">%</span></div>
+                    <div className={`sc ${isBacked ? 'up' : 'dn'}`}>{isBacked ? '● Above threshold' : '● Insolvent!'}</div>
+                </div>
+                <div className="stat-cell vis">
+                    <div className="sl">Proof Status</div>
+                    <div className="sv" style={{ fontSize: '24px', paddingTop: '10px' }}>{isLoading ? 'PROCESSING' : 'READY'}</div>
+                </div>
+            </div>
+
+            <div className="live-grid">
+                <div className="main-col" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+                    <div className="panel">
+                        <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Liability Declaration</span>
+                            <span style={{ color: 'var(--green)' }}>● public_input</span>
                         </div>
-                        <div className="fb-body">
-                            <div className="field-grid">
-                                <div className="field">
-                                    <label className="fl">Total User Liabilities ($POC)</label>
-                                    <input className="fi" value={circulatingSupply} readOnly />
-                                </div>
-                                <div className="field">
-                                    <label className="fl">Snapshot Timestamp</label>
-                                    <input className="fi" value={new Date().toISOString()} readOnly />
-                                </div>
+                        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div>
+                                <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.1em' }}>TOTAL LIABILITIES ($POC)</div>
+                                <input className="form-input" value={circulatingSupply} readOnly />
                             </div>
-                            <div className="field-grid">
-                                <div className="field">
-                                    <label className="fl">Private Key</label>
-                                    <input className="fi" type="password" value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} />
-                                </div>
-                                <div className="field">
-                                    <label className="fl">Proof Version</label>
-                                    <input className="fi" value="Noir v0.31" readOnly />
-                                </div>
+                            <div>
+                                <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.1em' }}>PRIVATE KEY</div>
+                                <input className="form-input" type="password" value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="fblock">
-                        <div className="fb-hdr">
-                            <div>
-                                <div className="fb-title">Reserve Assets</div>
-                                <div className="fb-sub">Private inputs — AES-256 encrypted before DataHaven upload</div>
+                    <div className="panel">
+                        <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Reserve Assets</span>
+                            <span style={{ color: 'var(--green)' }}>● private_input (AES-256)</span>
+                        </div>
+                        <div className="proof-table" style={{ border: 'none', borderTop: '1px solid var(--border2)' }}>
+                            <div className="tbl-head" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
+                                <span>ASSET / WALLET</span><span>TYPE</span><span>BALANCE (USD)</span><span>ENCRYPTION</span>
                             </div>
-                            <span className="fb-tag">private_input</span>
-                        </div>
-                        <div style={{ overflow: 'auto' }}>
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Asset / Wallet</th>
-                                        <th>Type</th>
-                                        <th>Balance (USD)</th>
-                                        <th>Share</th>
-                                        <th>Encryption</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {reserves.map(reserve => {
-                                        const share = totalReserves > 0 ? ((reserve.amount / totalReserves) * 100).toFixed(1) : "0.0";
-                                        return (
-                                            <tr key={reserve.id}>
-                                                <td>
-                                                    <div style={{ fontWeight: 600 }}>{reserve.name}</div>
-                                                    <div className="mono" style={{ color: "var(--text3)", fontSize: "10px", marginTop: "1px" }}>
-                                                        {reserve.id === "1" ? "Treasury Dept" : reserve.id === "2" ? "bc1q••••••••4a9d" : "Fiat Vault"}
-                                                    </div>
-                                                </td>
-                                                <td><span className="badge bg-gray">{reserve.type.toUpperCase()}</span></td>
-                                                <td style={{ fontWeight: 600, color: "var(--green)" }}>${reserve.amount.toLocaleString()}</td>
-                                                <td style={{ color: "var(--text3)" }}>{share}%</td>
-                                                <td><span className="badge bg-green">✓ AES-256</span></td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div style={{ padding: "9px 16px" }}>
-                            <button className="zv-btn btn-ghost" style={{ fontSize: "11px", width: "100%", borderStyle: "dashed" }}>+ Add Wallet / Asset</button>
+                            {reserves.map(r => (
+                                <div className="tbl-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }} key={r.id}>
+                                    <div style={{ fontWeight: 600 }}>{r.name}</div>
+                                    <div className="rs ok" style={{ color: 'var(--muted)' }}>{r.type.toUpperCase()}</div>
+                                    <div className="rval" style={{ textAlign: 'left', color: 'var(--green)' }}>${r.amount.toLocaleString()}</div>
+                                    <div className="rs ok">AES-256</div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    <div className="fblock">
-                        <div className="fb-hdr">
-                            <div>
-                                <div className="fb-title">Generation Pipeline</div>
-                                <div className="fb-sub">Cryptographic Workflow</div>
-                            </div>
-                        </div>
-                        <div className="fb-body">
-                            <div className="pipeline">
-                                <div className={`ps ${datahavenCID ? 'done' : isLoading ? 'active' : ''}`}>
-                                    <div className="ps-step">Step 1</div>
-                                    <div className="ps-name">DataHaven Upload</div>
-                                    <div className={`ps-stat ${datahavenCID ? 'done' : isLoading ? 'active' : 'wait'}`}>
-                                        {datahavenCID ? '✓ Complete' : isLoading ? '● Processing' : '○ Waiting'}
-                                    </div>
+                    <div className="panel" style={{ marginBottom: '40px' }}>
+                        <div className="panel-header">Pipeline Status</div>
+                        <div className="panel-body">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border2)', paddingBottom: '12px' }}>
+                                    <span style={{ color: datahavenCID ? 'var(--green)' : 'var(--muted)' }}>1. DataHaven Upload</span>
+                                    <span>{datahavenCID ? '✓ Complete' : isLoading ? '● Processing' : '○ Waiting'}</span>
                                 </div>
-                                <div className={`ps ${zkProof ? 'done' : (isLoading && datahavenCID) ? 'active' : ''}`}>
-                                    <div className="ps-step">Step 2</div>
-                                    <div className="ps-name">Run Noir Circuit</div>
-                                    <div className={`ps-stat ${zkProof ? 'done' : (isLoading && datahavenCID) ? 'active' : 'wait'}`}>
-                                        {zkProof ? '✓ Complete' : (isLoading && datahavenCID) ? '● Proving' : '○ Waiting'}
-                                    </div>
+                                <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border2)', paddingBottom: '12px' }}>
+                                    <span style={{ color: zkProof ? 'var(--green)' : 'var(--muted)' }}>2. Noir ZK Circuit Proving</span>
+                                    <span>{zkProof ? '✓ Complete' : (isLoading && datahavenCID) ? '● Proving' : '○ Waiting'}</span>
                                 </div>
-                                <div className={`ps ${anchoredTx ? 'done' : isAnchoring ? 'active' : ''}`}>
-                                    <div className="ps-step">Step 3</div>
-                                    <div className="ps-name">On-Chain Anchor</div>
-                                    <div className={`ps-stat ${anchoredTx ? 'done' : isAnchoring ? 'active' : 'wait'}`}>
-                                        {anchoredTx ? '✓ Complete' : isAnchoring ? '● Anchoring' : '○ Waiting'}
-                                    </div>
+                                <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: anchoredTx ? 'var(--green)' : 'var(--muted)' }}>3. EVM On-Chain Anchor</span>
+                                    <span>{anchoredTx ? '✓ Complete' : isAnchoring ? '● Anchoring' : '○ Waiting'}</span>
                                 </div>
                             </div>
 
                             {datahavenCID && (
-                                <div className="code-block">
-                                    <div className="cb-label">DataHaven CID</div>
-                                    <div className="cb-val">{datahavenCID}</div>
+                                <div className="proof-panel" style={{ marginTop: '24px', gridTemplateColumns: '1fr' }}>
+                                    <div className="code-hdr"><span>ARTIFACTS</span><span style={{ color: 'var(--green)' }}>● 3 objects</span></div>
+                                    <div className="code-body" style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                                        <div className="code-line"><span className="kw">CID:</span> <span className="tc">{datahavenCID}</span></div>
+                                        {zkProof && <div className="code-line" style={{ marginTop: '10px' }}><span className="kw">PROOF:</span> <span className="tc">{zkProof.substring(0, 60)}...</span></div>}
+                                        {anchoredTx && <div className="code-line" style={{ marginTop: '10px' }}><span className="kw">TX:</span> <span className="tc">{anchoredTx}</span></div>}
+                                    </div>
                                 </div>
                             )}
 
-                            {zkProof && (
-                                <div className="code-block" style={{ marginTop: '10px' }}>
-                                    <div className="cb-label">Noir Zero-Knowledge Proof String</div>
-                                    <div className="cb-val">{zkProof}</div>
-                                </div>
+                            {zkProof && !anchoredTx && !isAnchoring && (
+                                <button className="btn-secondary" onClick={handleAnchorOnChain} style={{ width: '100%', marginTop: '20px', justifyContent: 'center' }}>
+                                    Confirm On-Chain Anchor
+                                </button>
                             )}
-
-                            {anchoredTx && (
-                                <div className="code-block" style={{ marginTop: '10px' }}>
-                                    <div className="cb-label">On-Chain EVM Transaction Hash</div>
-                                    <div className="cb-val">{anchoredTx}</div>
-                                </div>
-                            )}
-
-                            <div className="act-row" style={{ marginTop: '15px' }}>
-                                {!zkProof ? (
-                                    <button className="zv-btn btn-green" onClick={handleSealAndProve} disabled={isLoading}>
-                                        ⚡ {isLoading ? "Processing..." : "Generate ZK Proof"}
-                                    </button>
-                                ) : !anchoredTx ? (
-                                    <button
-                                        className="zv-btn btn-sim"
-                                        onClick={handleAnchorOnChain}
-                                        disabled={isAnchoring}
-                                        style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text)", width: "100%" }}
-                                    >
-                                        ⛓️ {isAnchoring ? "Broadcasting..." : "Confirm On-Chain Anchor"}
-                                    </button>
-                                ) : (
-                                    <button className="zv-btn btn-green" disabled style={{ opacity: 0.8, width: "100%" }}>
-                                        ✓ Successfully Anchored On-Chain
-                                    </button>
-                                )}
-                            </div>
                         </div>
+                    </div>
+
+                </div>
+
+                <div className="sidebar">
+                    <div className="s-card">
+                        <div className="s-lbl">Oracle Feed <span>LIVE</span></div>
+                        <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '20px', marginBottom: '8px', letterSpacing: '0.1em' }}>TRADE VOLUME ($POC)</div>
+                        <input className="form-input" type="number" value={tradeAmount} onChange={(e) => setTradeAmount(Number(e.target.value))} style={{ marginBottom: '16px' }} />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <button className="nav-btn" onClick={handleBuyProtocolToken} style={{ color: 'var(--green)', borderColor: 'var(--green)', width: '100%', textAlign: 'center' }}>BUY</button>
+                            <button className="nav-btn" onClick={handleSellProtocolToken} style={{ color: 'var(--red)', borderColor: 'var(--red)', width: '100%', textAlign: 'center' }}>SELL</button>
+                        </div>
+                    </div>
+                    <div className="s-card">
+                        <div className="s-lbl" style={{ marginBottom: '20px' }}>External Shocks <span style={{ color: 'var(--muted)' }}>TEST</span></div>
+                        <button className="nav-btn" onClick={() => handleBtcPriceChange(0.05)} style={{ width: '100%', marginBottom: '10px', textAlign: 'left' }}>
+                            BULL MARKET <span style={{ float: 'right', color: 'var(--green)' }}>+5%</span>
+                        </button>
+                        <button className="nav-btn" onClick={() => handleBtcPriceChange(-0.15)} style={{ width: '100%', textAlign: 'left', borderColor: 'var(--red)', color: 'var(--red)' }}>
+                            FLASH CRASH <span style={{ float: 'right' }}>-15%</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Sidebar Oracle */}
-                <div className="issuer-sidebar" id="live-sb">
-                    <div className="isb-header">
-                        <div className="isb-title">Oracle Feed <span className="live-badge">LIVE</span></div>
-                    </div>
-
-                    <div className="gauge-wrap" style={{ borderBottom: '1px solid var(--border)' }}>
-                        <div className="gauge-lbl">Market Actions</div>
-                        <div style={{ marginBottom: "15px" }}>
-                            <label className="fl" style={{ marginBottom: "5px", display: "block" }}>Trade Amount ($POC)</label>
-                            <input
-                                type="number"
-                                className="fi"
-                                value={tradeAmount}
-                                onChange={(e) => setTradeAmount(Number(e.target.value))}
-                                style={{ fontSize: "16px", fontWeight: "bold", padding: "10px" }}
-                            />
-                        </div>
-                        <div className="gauge-row">
-                            <button className="zv-btn" onClick={handleBuyProtocolToken} style={{ background: "var(--emerald-dim)", color: "var(--green)", border: "1px solid rgba(34,197,94,.2)" }}>BUY VOL</button>
-                            <button className="zv-btn" onClick={handleSellProtocolToken} style={{ background: "var(--red-dim)", color: "var(--red)", border: "1px solid rgba(239,68,68,.2)" }}>SELL VOL</button>
-                        </div>
-                    </div>
-
-                    <div className="gauge-wrap" style={{ borderBottom: '1px solid var(--border)' }}>
-                        <div className="gauge-lbl">External Shocks</div>
-                        <div className="how-steps" style={{ marginTop: "10px" }}>
-                            <button className="hs" onClick={() => handleBtcPriceChange(0.05)} style={{ borderLeftColor: "var(--green)", cursor: "pointer", textAlign: "left", background: "transparent", border: "1px solid var(--border)", borderLeft: "3px solid var(--green)" }}>
-                                <strong>Bull Market</strong>
-                                <span>BTC Value +5%</span>
-                            </button>
-                            <button className="hs" onClick={() => handleBtcPriceChange(-0.15)} style={{ borderLeftColor: "var(--red)", cursor: "pointer", textAlign: "left", background: "transparent", border: "1px solid var(--border)", borderLeft: "3px solid var(--red)" }}>
-                                <strong>Flash Crash</strong>
-                                <span>BTC Value -15%</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </main>
     );

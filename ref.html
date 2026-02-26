@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZK PROOF — Cryptographic Solvency Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080c10;--bg1:#0b0f14;--bg2:#0f1318;
+  --green:#00c97a;--green-dim:rgba(0,201,122,0.06);--green-glow:rgba(0,201,122,0.2);
+  --red:#cc3333;--text:#c8c8c8;--muted:#606060;--muted2:#1e1e1e;
+  --border:rgba(0,255,136,0.12);--border2:rgba(255,255,255,0.05);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;overflow-x:hidden;cursor:crosshair;background-image:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,201,122,0.07) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(0,150,255,0.04) 0%, transparent 60%);background-attachment:fixed;}
+/* scanlines removed */
+.grid-bg{position:fixed;inset:0;background-image:linear-gradient(rgba(0,224,122,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,224,122,0.018) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+
+/* TICKER */
+.ticker{position:fixed;top:0;left:0;right:0;z-index:200;background:#000;border-bottom:1px solid rgba(0,255,136,0.15);height:28px;display:flex;align-items:center;overflow:hidden;}
+.ticker-inner{display:flex;animation:ticker-scroll 28s linear infinite;white-space:nowrap;}
+.ticker-item{font-size:9px;letter-spacing:0.09em;padding:0 20px;border-right:1px solid var(--muted2);color:var(--muted);flex-shrink:0;}
+.ticker-item .up{color:var(--green);}
+.ticker-item .dn{color:var(--red);}
+@keyframes ticker-scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* NAV */
+nav{position:fixed;top:28px;left:0;right:0;z-index:100;background:rgba(0,0,0,0.92);border-bottom:1px solid var(--border2);padding:0 40px;height:52px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.logo-box{width:30px;height:30px;border:1px solid var(--green);display:flex;align-items:center;justify-content:center;animation:box-glow 3s ease-in-out infinite;}
+@keyframes box-glow{0%,100%{box-shadow:0 0 4px var(--green-glow);}50%{box-shadow:0 0 10px var(--green-glow);}}
+.logo-box::before{content:'ZK';font-size:9px;font-weight:700;color:var(--green);letter-spacing:0.04em;}
+.logo-text{font-size:13px;font-weight:700;letter-spacing:0.15em;color:var(--text);}
+.logo-text span{color:var(--green);}
+.nav-center{display:flex;}
+.nav-link{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:0 18px;height:52px;display:flex;align-items:center;border-right:1px solid var(--border2);transition:color .15s,background .15s;}
+.nav-link:first-child{border-left:1px solid var(--border2);}
+.nav-link:hover{color:var(--green);background:var(--green-dim);}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.status-pill{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:.1em;color:var(--green);}
+.status-pill::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%;animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.nav-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--green);color:var(--green);background:transparent;text-decoration:none;transition:all .15s;}
+.nav-btn:hover{background:var(--green);color:#000;}
+
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100vh;padding:140px 40px 80px;display:grid;grid-template-columns:1fr 420px;gap:60px;align-items:center;}
+.hero-eyebrow{display:flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.18em;color:var(--green);text-transform:uppercase;margin-bottom:28px;}
+.ey-line{width:28px;height:1px;background:var(--green);}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,5.5vw,88px);line-height:.95;letter-spacing:.02em;margin-bottom:32px;}
+.hero-title .t1{color:var(--text);}
+.hero-title .t2{color:var(--muted);display:block;}
+.hero-title .t3{color:var(--green);display:block;}
+.hero-desc{font-size:12px;line-height:1.9;color:#606060;max-width:520px;margin-bottom:44px;border-left:2px solid rgba(0,224,122,.15);padding-left:18px;}
+.hero-desc em{color:var(--text);font-style:normal;}
+.hero-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.btn-primary{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:13px 28px;background:var(--green);color:#000;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .15s;}
+.btn-primary:hover{background:#000;color:var(--green);outline:1px solid var(--green);box-shadow:0 0 16px var(--green-glow);}
+.btn-secondary{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:15px 22px;border:1px solid var(--muted2);color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .15s;}
+.btn-secondary:hover{border-color:var(--green);color:var(--green);}
+
+/* TERMINAL */
+.hero-terminal{border:1px solid var(--border);background:var(--bg1);position:relative;overflow:hidden;}
+/* scan animation removed */
+.t-head{background:var(--bg2);border-bottom:1px solid var(--border2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
+.t-title{font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.t-badge{font-size:8px;letter-spacing:.1em;color:var(--green);background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);padding:2px 8px;}
+.t-body{padding:20px;line-height:2.2;font-size:11px;}
+.tp{color:var(--green);}
+.tc{color:var(--text);}
+.to{color:var(--muted);font-size:10px;}
+.ts{color:var(--green);}
+.th{color:#00ffff;font-size:10px;}
+.tw{color:#f0c040;}
+.tcursor{display:inline-block;width:7px;height:12px;background:var(--green);vertical-align:middle;animation:blink 1s step-end infinite;}
+.t-foot{border-top:1px solid var(--border2);padding:8px 16px;display:grid;grid-template-columns:repeat(3,1fr);}
+.t-fi{font-size:9px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;}
+.t-fi span{color:var(--green);}
+.corner{position:absolute;width:16px;height:16px;}
+.c-tl{top:0;left:0;border-top:1px solid var(--green);border-left:1px solid var(--green);}
+.c-tr{top:0;right:0;border-top:1px solid var(--green);border-right:1px solid var(--green);}
+.c-bl{bottom:0;left:0;border-bottom:1px solid var(--green);border-left:1px solid var(--green);}
+.c-br{bottom:0;right:0;border-bottom:1px solid var(--green);border-right:1px solid var(--green);}
+
+/* MARQUEE */
+.marquee-wrap{position:relative;z-index:1;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);overflow:hidden;padding:12px 0;background:var(--bg1);}
+.marquee-inner{display:flex;animation:mq 22s linear infinite;white-space:nowrap;}
+.mi{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.1em;color:var(--muted2);padding:0 24px;flex-shrink:0;}
+.mi.ac{color:var(--green);}
+@keyframes mq{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* STATS */
+.stats-bar{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border2);}
+.stat-cell{padding:32px 28px;border-right:1px solid var(--border2);opacity:0;transform:translateY(12px);transition:opacity .5s,transform .5s;}
+.stat-cell:last-child{border-right:none;}
+.stat-cell.vis{opacity:1;transform:none;}
+.sl{font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sl::before{content:'//';color:var(--green);opacity:.5;}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;color:var(--text);}
+.sv .u{color:var(--green);font-size:24px;}
+.sc{font-size:9px;letter-spacing:.08em;margin-top:5px;}
+.sc.up{color:var(--green);}
+.sc.dn{color:var(--red);}
+
+/* SECTION */
+.section{position:relative;z-index:1;padding:90px 40px;}
+.sec-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:56px;padding-bottom:28px;border-bottom:1px solid var(--border2);}
+.sec-num{font-size:9px;letter-spacing:.15em;color:var(--green);text-transform:uppercase;margin-bottom:10px;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,3.5vw,50px);letter-spacing:.05em;line-height:.95;color:var(--text);}
+.sec-title .hl{color:var(--green);}
+.sec-meta{max-width:300px;font-size:11px;line-height:1.8;color:var(--muted);text-align:right;}
+
+/* STEPS */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);}
+.step{background:var(--bg);padding:36px 28px;position:relative;overflow:hidden;opacity:0;transform:translateY(18px);transition:opacity .6s,transform .6s;}
+.step.vis{opacity:1;transform:none;}
+.step::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.step:hover::after{transform:scaleX(1);}
+.step:hover{background:rgba(0,255,136,.02);}
+.step-idx{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:var(--muted2);margin-bottom:20px;}
+.step-tag{font-size:9px;letter-spacing:.15em;color:var(--green);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.step-tag::before{content:'▶';font-size:6px;}
+.step-name{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text);}
+.step-desc{font-size:11px;line-height:1.8;color:var(--muted);}
+
+/* PROOF SPLIT */
+.proof-panel{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);}
+.proof-left{background:var(--bg);padding:56px 40px;position:relative;}
+.proof-right{background:var(--bg1);display:flex;flex-direction:column;}
+.code-hdr{padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border2);font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;}
+.code-body{padding:22px 20px;font-size:11px;line-height:2;flex:1;}
+.code-line{display:flex;gap:14px;}
+.ln{color:var(--muted2);min-width:18px;text-align:right;user-select:none;}
+.kw{color:#ff79c6;}
+.fn{color:#50fa7b;}
+.num{color:#bd93f9;}
+.cm{color:var(--muted);font-style:italic;}
+.ptags{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;}
+.ptag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border:1px solid var(--border2);color:var(--muted);background:var(--bg1);transition:all .15s;}
+.ptag:hover,.ptag.on{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+
+/* LIVE FEED */
+.live-section{position:relative;z-index:1;padding:90px 40px;}
+.live-grid{display:grid;grid-template-columns:1fr 340px;gap:32px;}
+.proof-table{border:1px solid var(--border2);}
+.tbl-head{display:grid;grid-template-columns:90px 1fr 110px 110px 90px;padding:10px 18px;background:var(--bg2);border-bottom:1px solid var(--border2);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.tbl-row{display:grid;grid-template-columns:90px 1fr 110px 110px 90px;padding:13px 18px;border-bottom:1px solid var(--border2);font-size:10px;align-items:center;transition:background .15s;}
+.tbl-row:last-child{border-bottom:none;}
+.tbl-row:hover{background:var(--green-dim);}
+.rs{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.08em;}
+.rs.ok::before{content:'●';color:var(--green);}
+.rs.ok{color:var(--green);}
+.rs.pd::before{content:'◌';color:#ffcc00;}
+.rs.pd{color:#ffcc00;}
+.rhash{color:#00ffff;font-size:9px;}
+.rval{color:var(--text);text-align:right;}
+.rtime{color:var(--muted);font-size:9px;text-align:right;}
+
+.sidebar{display:flex;flex-direction:column;gap:1px;background:var(--border2);}
+.s-card{background:var(--bg1);padding:20px;}
+.s-lbl{font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;justify-content:space-between;}
+.s-lbl span{color:var(--green);}
+.s-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);}
+.s-val .g{color:var(--green);}
+.mini-bar{margin-top:10px;height:3px;background:var(--muted2);position:relative;overflow:hidden;}
+.mini-fill{position:absolute;top:0;left:0;bottom:0;background:var(--green);}
+.s-sub{font-size:9px;color:var(--muted);margin-top:5px;letter-spacing:.07em;}
+
+/* CTA */
+.cta-section{position:relative;z-index:1;padding:120px 40px;border-top:1px solid var(--border2);display:grid;grid-template-columns:1fr auto;align-items:center;gap:60px;}
+.cta-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,6vw,88px);line-height:.88;letter-spacing:.03em;}
+.cta-title .stroke{color:var(--muted);display:block;}
+.cta-title .fill{color:var(--green);display:block;}
+.cta-right{display:flex;flex-direction:column;gap:14px;align-items:flex-end;}
+.cta-desc{font-size:11px;line-height:1.8;color:var(--muted);max-width:280px;text-align:right;margin-bottom:6px;}
+
+/* FOOTER */
+footer{position:relative;z-index:1;border-top:1px solid var(--border2);padding:28px 40px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:36px;}
+.footer-logo{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--muted);}
+.footer-links{display:flex;list-style:none;}
+.footer-links a{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:0 14px;border-right:1px solid var(--border2);transition:color .15s;}
+.footer-links li:first-child a{padding-left:0;}
+.footer-links a:hover{color:var(--green);}
+.footer-copy{font-size:9px;letter-spacing:.07em;color:var(--muted2);}
+
+/* ANIMATIONS */
+.fade-up{opacity:0;transform:translateY(14px);animation:fadeup .6s ease forwards;}
+@keyframes fadeup{to{opacity:1;transform:none;}}
+.d1{animation-delay:.1s;}.d2{animation-delay:.25s;}.d3{animation-delay:.4s;}.d4{animation-delay:.55s;}.d5{animation-delay:.7s;}
+
+.glitch{}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">BTC/USDT <span class="up">▲ $67,240</span></span>
+    <span class="ticker-item">ETH/USDT <span class="up">▲ $3,842</span></span>
+    <span class="ticker-item">PROOF TIME <span class="up">18ms AVG</span></span>
+    <span class="ticker-item">RESERVES <span class="up">$2.4B VERIFIED</span></span>
+    <span class="ticker-item">SOL/USDT <span class="dn">▼ $182</span></span>
+    <span class="ticker-item">ACTIVE PROOFS <span class="up">2,841</span></span>
+    <span class="ticker-item">NETWORK <span class="up">● ONLINE</span></span>
+    <span class="ticker-item">BNB/USDT <span class="up">▲ $524</span></span>
+    <span class="ticker-item">CIRCUIT <span class="up">Groth16 / BN254</span></span>
+    <span class="ticker-item">GAS <span class="dn">12 GWEI</span></span>
+    <span class="ticker-item">BTC/USDT <span class="up">▲ $67,240</span></span>
+    <span class="ticker-item">ETH/USDT <span class="up">▲ $3,842</span></span>
+    <span class="ticker-item">PROOF TIME <span class="up">18ms AVG</span></span>
+    <span class="ticker-item">RESERVES <span class="up">$2.4B VERIFIED</span></span>
+    <span class="ticker-item">SOL/USDT <span class="dn">▼ $182</span></span>
+    <span class="ticker-item">ACTIVE PROOFS <span class="up">2,841</span></span>
+    <span class="ticker-item">NETWORK <span class="up">● ONLINE</span></span>
+    <span class="ticker-item">BNB/USDT <span class="up">▲ $524</span></span>
+    <span class="ticker-item">CIRCUIT <span class="up">Groth16 / BN254</span></span>
+    <span class="ticker-item">GAS <span class="dn">12 GWEI</span></span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-box"></div>
+    <span class="logo-text">ZERO<span>PROOF</span></span>
+  </a>
+  <div class="nav-center">
+    <a href="#" class="nav-link">Protocol</a>
+    <a href="#" class="nav-link">Verify</a>
+    <a href="#" class="nav-link">Docs</a>
+    <a href="#" class="nav-link">Audits</a>
+    <a href="#" class="nav-link">Explorer</a>
+  </div>
+  <div class="nav-right">
+    <div class="status-pill">ALL SYSTEMS NOMINAL</div>
+    <a href="#" class="nav-btn">Launch App</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow fade-up d1"><div class="ey-line"></div>ZK Proof of Reserves — Protocol v2.4</div>
+    <h1 class="hero-title">
+      <span class="t1 fade-up d2">Prove</span>
+      <span class="t2 fade-up d3">Solvency.</span>
+      <span class="t3 fade-up d3">Reveal Zero.</span>
+    </h1>
+    <p class="hero-desc fade-up d4">Cryptographically verify your exchange holds <em>100% of user funds</em> without exposing a single wallet address, balance, or trade. <em>Zero trust. Zero exposure. On-chain immutable.</em></p>
+    <div class="hero-actions fade-up d5">
+      <a href="#" class="btn-primary">→ Issue a Proof</a>
+      <a href="#" class="btn-secondary">Verify on-chain</a>
+    </div>
+  </div>
+
+  <div class="hero-terminal fade-up d4">
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <div class="corner c-bl"></div><div class="corner c-br"></div>
+    <div class="t-head">
+      <span class="t-title">zeroproof@mainnet:~$</span>
+      <span class="t-badge">● LIVE</span>
+    </div>
+    <div class="t-body">
+      <div><span class="tp">❯ </span><span class="tc">zkproof generate --exchange kraken</span></div>
+      <div class="to">&nbsp;&nbsp;[....] Fetching commitment tree</div>
+      <div class="to">&nbsp;&nbsp;[....] Building Groth16 circuit</div>
+      <div class="to">&nbsp;&nbsp;[....] Generating witness</div>
+      <div class="to">&nbsp;&nbsp;[....] Proving asset coverage</div>
+      <div>&nbsp;</div>
+      <div class="ts">&nbsp;&nbsp;[PASS] Assets ≥ Liabilities</div>
+      <div class="ts">&nbsp;&nbsp;[PASS] Proof generated: 18ms</div>
+      <div class="ts">&nbsp;&nbsp;[PASS] Zero data exposed</div>
+      <div class="ts">&nbsp;&nbsp;[PASS] On-chain verified</div>
+      <div>&nbsp;</div>
+      <div class="to">&nbsp;&nbsp;proof_id&nbsp;&nbsp; <span class="th">0x3f7ac2...e91b</span></div>
+      <div class="to">&nbsp;&nbsp;block&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#e8e8e8">19,204,810</span></div>
+      <div class="to">&nbsp;&nbsp;protocol&nbsp;&nbsp; <span style="color:#e8e8e8">Groth16 / BN254</span></div>
+      <div class="to">&nbsp;&nbsp;gas_used&nbsp;&nbsp; <span class="tw">214,882</span></div>
+      <div>&nbsp;</div>
+      <div><span class="tp">❯ </span><span class="tcursor"></span></div>
+    </div>
+    <div class="t-foot">
+      <div class="t-fi">BLOCK <span id="bn">19,204,810</span></div>
+      <div class="t-fi">LATENCY <span>18ms</span></div>
+      <div class="t-fi">STATUS <span>VERIFIED</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-inner">
+    <span class="mi ac">ZERO KNOWLEDGE</span><span class="mi">✦ GROTH16</span><span class="mi">✦ BN254 CURVE</span><span class="mi ac">✦ PROOF OF RESERVES</span><span class="mi">✦ ON-CHAIN VERIFIABLE</span><span class="mi">✦ POSEIDON HASH</span><span class="mi ac">✦ MERKLE TREE</span><span class="mi">✦ TRUSTLESS</span><span class="mi">✦ AUDITED</span><span class="mi ac">✦ OPEN SOURCE</span>
+    <span class="mi ac">ZERO KNOWLEDGE</span><span class="mi">✦ GROTH16</span><span class="mi">✦ BN254 CURVE</span><span class="mi ac">✦ PROOF OF RESERVES</span><span class="mi">✦ ON-CHAIN VERIFIABLE</span><span class="mi">✦ POSEIDON HASH</span><span class="mi ac">✦ MERKLE TREE</span><span class="mi">✦ TRUSTLESS</span><span class="mi">✦ AUDITED</span><span class="mi ac">✦ OPEN SOURCE</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-cell"><div class="sl">Reserves Verified</div><div class="sv">$2.4<span class="u">B</span></div><div class="sc up">▲ +$140M 24H</div></div>
+  <div class="stat-cell"><div class="sl">Avg Proof Time</div><div class="sv">18<span class="u">ms</span></div><div class="sc up">▲ 3ms faster</div></div>
+  <div class="stat-cell"><div class="sl">Proofs Issued</div><div class="sv">2.8<span class="u">K</span></div><div class="sc up">▲ +84 today</div></div>
+  <div class="stat-cell"><div class="sl">Data Exposed</div><div class="sv">0<span class="u">B</span></div><div class="sc up">● ALWAYS ZERO</div></div>
+</div>
+
+<!-- PROTOCOL -->
+<section class="section">
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-num">// 01 — Protocol</div>
+      <div class="sec-title glitch">How the<br><span class="hl">Proof Works</span></div>
+    </div>
+    <div class="sec-meta">Our ZK circuit uses Pedersen commitments in a Merkle tree to prove solvency without exposing user data or exchange balances.</div>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-idx">01</div>
+      <div class="step-tag">COMMIT</div>
+      <div class="step-name">Merkle Commitment</div>
+      <div class="step-desc">The exchange constructs a Merkle tree of all user balances using Poseidon hash. Only the root is published — no individual balances or addresses exposed.</div>
+    </div>
+    <div class="step" style="transition-delay:.1s">
+      <div class="step-idx">02</div>
+      <div class="step-tag">PROVE</div>
+      <div class="step-name">ZK Circuit Generation</div>
+      <div class="step-desc">A Groth16 circuit generates a zero-knowledge proof that the exchange's total reserve assets exceed the committed sum of liabilities. Under 20ms.</div>
+    </div>
+    <div class="step" style="transition-delay:.2s">
+      <div class="step-idx">03</div>
+      <div class="step-tag">VERIFY</div>
+      <div class="step-name">On-Chain Verification</div>
+      <div class="step-desc">The proof is published on-chain. Any wallet, regulator, or user can verify independently. Immutable. Permissionless. Requires zero trust in the exchange.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CODE PANEL -->
+<div class="proof-panel">
+  <div class="proof-left">
+    <div class="corner c-tl"></div>
+    <div class="sec-num">// 02 — Cryptography</div>
+    <div class="sec-title" style="margin:14px 0 22px;">Built on<br><span class="hl">Real Math</span></div>
+    <p style="font-size:11px;line-height:1.9;color:var(--muted);margin-bottom:28px;">Battle-tested primitives — the same stack used by leading ZK rollups. Fully audited. Open source. No trusted setup beyond the ceremony.</p>
+    <div class="ptags">
+      <div class="ptag on">Groth16</div>
+      <div class="ptag on">BN254</div>
+      <div class="ptag on">Poseidon Hash</div>
+      <div class="ptag">Pedersen Commit</div>
+      <div class="ptag">Merkle Tree</div>
+      <div class="ptag">EVM Verifier</div>
+      <div class="ptag">snarkjs</div>
+      <div class="ptag">circom 2.0</div>
+    </div>
+  </div>
+  <div class="proof-right">
+    <div class="code-hdr"><span>circuit.circom</span><span style="color:var(--green)">● circom 2.0</span></div>
+    <div class="code-body">
+      <div class="code-line"><span class="ln">1</span><span class="cm">// ZK Proof of Reserves Circuit</span></div>
+      <div class="code-line"><span class="ln">2</span><span class="kw">pragma</span> circom <span class="num">2.0.0</span>;</div>
+      <div class="code-line"><span class="ln">3</span></div>
+      <div class="code-line"><span class="ln">4</span><span class="kw">template</span> <span class="fn">ProofOfReserves</span>(<span class="num">N</span>) {</div>
+      <div class="code-line"><span class="ln">5</span>&nbsp;&nbsp;<span class="cm">// private inputs — never revealed</span></div>
+      <div class="code-line"><span class="ln">6</span>&nbsp;&nbsp;<span class="kw">signal private input</span> balances[N];</div>
+      <div class="code-line"><span class="ln">7</span>&nbsp;&nbsp;<span class="kw">signal private input</span> totalReserves;</div>
+      <div class="code-line"><span class="ln">8</span></div>
+      <div class="code-line"><span class="ln">9</span>&nbsp;&nbsp;<span class="cm">// public inputs</span></div>
+      <div class="code-line"><span class="ln">10</span>&nbsp;&nbsp;<span class="kw">signal input</span> merkleRoot;</div>
+      <div class="code-line"><span class="ln">11</span>&nbsp;&nbsp;<span class="kw">signal output</span> verified;</div>
+      <div class="code-line"><span class="ln">12</span></div>
+      <div class="code-line"><span class="ln">13</span>&nbsp;&nbsp;<span class="kw">var</span> totalLiab = <span class="fn">sumArray</span>(balances, N);</div>
+      <div class="code-line"><span class="ln">14</span>&nbsp;&nbsp;<span class="cm">// assert solvency constraint</span></div>
+      <div class="code-line"><span class="ln">15</span>&nbsp;&nbsp;totalReserves - totalLiab &gt;= <span class="num">0</span>;</div>
+      <div class="code-line"><span class="ln">16</span>&nbsp;&nbsp;verified &lt;== <span class="fn">MerkleVerify</span>(merkleRoot);</div>
+      <div class="code-line"><span class="ln">17</span>}</div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE FEED -->
+<section class="live-section">
+  <div class="sec-hdr" style="margin-bottom:28px;">
+    <div>
+      <div class="sec-num">// 03 — Explorer</div>
+      <div class="sec-title">Live <span class="hl">Proof Feed</span></div>
+    </div>
+    <div class="status-pill" style="align-self:flex-end;padding-bottom:6px;">UPDATING EVERY BLOCK</div>
+  </div>
+  <div class="live-grid">
+    <div class="proof-table">
+      <div class="tbl-head"><span>STATUS</span><span>PROOF HASH</span><span>EXCHANGE</span><span>RESERVES</span><span>TIME</span></div>
+      <div class="tbl-row"><div class="rs ok">VERIFIED</div><div class="rhash">0x3f7a...c91b</div><div>Kraken</div><div class="rval">$420.2M</div><div class="rtime">2s ago</div></div>
+      <div class="tbl-row"><div class="rs ok">VERIFIED</div><div class="rhash">0x9b2c...f44a</div><div>OKX</div><div class="rval">$1.20B</div><div class="rtime">18s ago</div></div>
+      <div class="tbl-row"><div class="rs pd">PENDING</div><div class="rhash">0x1e8f...a203</div><div>Bybit</div><div class="rval">$890.4M</div><div class="rtime">32s ago</div></div>
+      <div class="tbl-row"><div class="rs ok">VERIFIED</div><div class="rhash">0xc40d...8e71</div><div>Deribit</div><div class="rval">$312.8M</div><div class="rtime">1m ago</div></div>
+      <div class="tbl-row"><div class="rs ok">VERIFIED</div><div class="rhash">0x77ab...2f19</div><div>Bitfinex</div><div class="rval">$540.1M</div><div class="rtime">3m ago</div></div>
+    </div>
+    <div class="sidebar">
+      <div class="s-card"><div class="s-lbl">Total Reserves <span>LIVE</span></div><div class="s-val">$2.4<span class="g">B</span></div><div class="mini-bar"><div class="mini-fill" style="width:82%"></div></div><div class="s-sub">82% of registered exchanges</div></div>
+      <div class="s-card"><div class="s-lbl">Block Height <span>ETH</span></div><div class="s-val" id="lb">19,204,<span class="g">810</span></div></div>
+      <div class="s-card"><div class="s-lbl">Proofs Today <span>+84</span></div><div class="s-val">2,<span class="g">841</span></div><div class="mini-bar"><div class="mini-fill" style="width:94%"></div></div></div>
+      <div class="s-card"><div class="s-lbl">Avg Proof Time</div><div class="s-val">18<span class="g">ms</span></div><div class="s-sub">P99: 24ms · P50: 14ms</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-title">
+    <span class="stroke">Prove it.</span>
+    <span class="fill">On-chain.</span>
+  </div>
+  <div class="cta-right">
+    <p class="cta-desc">Issue a cryptographic proof of solvency in under 20ms. No exposure. No trust. Just math.</p>
+    <a href="#" class="btn-primary" style="font-size:13px;padding:18px 36px;">→ Issue a Proof</a>
+    <a href="#" class="btn-secondary">Read the docs</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">ZEROPROOF PROTOCOL v2.4</div>
+  <ul class="footer-links">
+    <li><a href="#">Github</a></li>
+    <li><a href="#">Docs</a></li>
+    <li><a href="#">Audit Reports</a></li>
+    <li><a href="#">Explorer</a></li>
+    <li><a href="#">Privacy</a></li>
+  </ul>
+  <div class="footer-copy">© 2026 ZEROPROOF. ALL RIGHTS RESERVED.</div>
+</footer>
+
+<script>
+const io = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting) x.target.classList.add('vis'); }), {threshold:.1});
+document.querySelectorAll('.stat-cell,.step').forEach(el => io.observe(el));
+
+let block = 19204810;
+setInterval(() => {
+  block++;
+  const f = block.toLocaleString();
+  const el = document.getElementById('bn');
+  const lb = document.getElementById('lb');
+  if(el) el.textContent = f;
+  if(lb){ const p = f.split(','); lb.innerHTML = p[0]+','+p[1]+',<span class="g">'+p[2]+'</span>'; }
+}, 12000);
+</script>
+</body>
+</html>
