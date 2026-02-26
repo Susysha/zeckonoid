@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { useSharedState } from "@/hooks/useSharedState";
 
 export function Sidebar() {
     const pathname = usePathname();
+    const [proofHistory] = useSharedState<any[]>("pob-history", []);
 
     return (
         <div className="rail">
@@ -30,11 +32,11 @@ export function Sidebar() {
                 </div>
                 <div className="nav-group">
                     <span className="ngl">Organization</span>
+                    <Link href="/history" className={`ni ${pathname === "/history" ? "active" : ""}`}>
+                        <span>📋</span> Proof History <span className="ni-count">{proofHistory.length}</span>
+                    </Link>
                     <div className="ni">
-                        <span>📋</span> Proof History <span className="ni-count">14</span>
-                    </div>
-                    <div className="ni">
-                        <span>🗄️</span> DataHaven <span className="ni-count">14</span>
+                        <span>🗄️</span> DataHaven <span className="ni-count">{proofHistory.length}</span>
                     </div>
                     <div className="ni">
                         <span>🔔</span> Alerts

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # The Proof of Backing Next.js Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - datahaven-node # Wait for the local devnet to start
+
+  # This is a placeholder for your existing DataHaven Docker setup.
+  # If you already have a docker-compose file running your `storage-hub-s` node, 
+  # you can simply merge this `web` service block into it!
+  datahaven-node:
+    image: blocklessnetwork/storage-hub-node:latest # (Replace with your actual image/build)
+    ports:
+      - "9666:9666" # The Local RPC Port
+      - "8080:8080" # The MSP Client Port
+    restart: unless-stopped

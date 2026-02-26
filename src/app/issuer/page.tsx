@@ -10,8 +10,8 @@ export default function IssuerPage() {
     const [privateKey, setPrivateKey] = useState<string>("0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
 
     // Globally sync across tabs via localStorage custom hook
-    const [circulatingSupply, setCirculatingSupply] = useSharedState<number>("pob-circulating-supply", 5000000);
-    const [reserves, setReserves] = useSharedState<{ id: string; name: string; amount: number; type: 'fiat' | 'crypto' | 'tbill' }[]>("pob-reserves", [
+    const [circulatingSupply, setCirculatingSupply] = useSharedState<number>("pob-supply-v2", 5000000);
+    const [reserves, setReserves] = useSharedState<{ id: string; name: string; amount: number; type: 'fiat' | 'crypto' | 'tbill' }[]>("pob-reserves-v2", [
         { id: "1", name: "Treasury T-Bills", amount: 2000000, type: 'tbill' },
         { id: "2", name: "Cold Wallet BTC", amount: 3000000, type: 'crypto' },
         { id: "3", name: "Vault Cash", amount: 500000, type: 'fiat' },
@@ -19,8 +19,13 @@ export default function IssuerPage() {
 
     // Processing State
     const [isLoading, setIsLoading] = useState(false);
+    const [isAnchoring, setIsAnchoring] = useState(false);
     const [datahavenCID, setDatahavenCID] = useState<string | null>(null);
     const [zkProof, setZkProof] = useState<string | null>(null);
+    const [anchoredTx, setAnchoredTx] = useState<string | null>(null);
+
+    // Globally synced proof history
+    const [proofHistory, setProofHistory] = useSharedState<any[]>("pob-history", []);
 
     // Sidebar Oracle State
     const [tradeAmount, setTradeAmount] = useState<number>(100000);
@@ -34,6 +39,7 @@ export default function IssuerPage() {
         setIsLoading(true);
         setDatahavenCID(null);
         setZkProof(null);
+        setAnchoredTx(null);
 
         const payload = {
             timestamp: Date.now(),
@@ -48,11 +54,69 @@ export default function IssuerPage() {
             const amounts = reserves.map((r) => r.amount);
             const proofStr = await generateNoirProof(amounts, circulatingSupply);
             setZkProof(proofStr);
+
+            // Automate the On-Chain Anchoring step
+            let currentTxHash: string | null = null;
+            setIsAnchoring(true);
+            try {
+                const { anchorProofOnChain } = await import('@/utils/anchoring');
+                currentTxHash = await anchorProofOnChain(dhResult.cid, proofStr);
+                setAnchoredTx(currentTxHash);
+            } catch (anchorErr: any) {
+                console.warn("Auto-anchoring failed or was cancelled by user:", anchorErr);
+                if (anchorErr?.message?.includes("No Web3 wallet injected")) {
+                    alert("On-Chain Anchor Skipped: No Web3 Wallet (like MetaMask) was detected in this specific browser window. If you are using an IDE Preview or Incognito, please open localhost:3000 in your main Chrome window.");
+                } else {
+                    alert(`On-Chain Anchor failed: ${anchorErr?.message || "Unknown error"}. The proof was still saved locally.`);
+                }
+                // We don't throw here, so the proof is still saved to history (just without a txHash).
+                // The user can retry manually via the handleAnchorOnChain button.
+            }
+            setIsAnchoring(false);
+
+            setProofHistory(prev => [{
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                cid: dhResult.cid,
+                proof: proofStr,
+                coverage: collateralizationRatio,
+                assets: totalReserves,
+                status: isBacked ? "Valid" : "Review",
+                institution: "ZeroVault Demo",
+                txHash: currentTxHash
+            }, ...prev]);
+
         } catch (e: any) {
             console.error(e);
             alert("Error generating proof or uploading to DataHaven.");
         }
         setIsLoading(false);
+    };
+
+    const handleAnchorOnChain = async () => {
+        if (!datahavenCID || !zkProof) return;
+        setIsAnchoring(true);
+
+        try {
+            // Dynamically import to avoid SSR issues with window.ethereum
+            const { anchorProofOnChain } = await import('@/utils/anchoring');
+            const hash = await anchorProofOnChain(datahavenCID, zkProof);
+
+            setAnchoredTx(hash);
+
+            // Update the latest history item with the txHash
+            setProofHistory(prev => {
+                if (prev.length === 0) return prev;
+                const newHistory = [...prev];
+                newHistory[0] = { ...newHistory[0], txHash: hash };
+                return newHistory;
+            });
+
+        } catch (e: any) {
+            console.error(e);
+            alert(e.message || "Error anchoring to blockchain. Ensure your wallet is connected to Sepolia.");
+        }
+        setIsAnchoring(false);
     };
 
     const handleBuyProtocolToken = () => setCirculatingSupply((prev) => prev + tradeAmount);
@@ -72,7 +136,7 @@ export default function IssuerPage() {
             <div className="topbar">
                 <div>
                     <div className="topbar-title">Issue Proof · Organization</div>
-                    <div className="topbar-sub">// Encrypt → Upload → Prove → Submit</div>
+                    <div className="topbar-sub">// Encrypt → Upload → Prove → Anchor</div>
                 </div>
                 <div className="topbar-right">
                     <button className="zv-btn btn-ghost">Import CSV</button>
@@ -207,6 +271,13 @@ export default function IssuerPage() {
                                         {zkProof ? '✓ Complete' : (isLoading && datahavenCID) ? '● Proving' : '○ Waiting'}
                                     </div>
                                 </div>
+                                <div className={`ps ${anchoredTx ? 'done' : isAnchoring ? 'active' : ''}`}>
+                                    <div className="ps-step">Step 3</div>
+                                    <div className="ps-name">On-Chain Anchor</div>
+                                    <div className={`ps-stat ${anchoredTx ? 'done' : isAnchoring ? 'active' : 'wait'}`}>
+                                        {anchoredTx ? '✓ Complete' : isAnchoring ? '● Anchoring' : '○ Waiting'}
+                                    </div>
+                                </div>
                             </div>
 
                             {datahavenCID && (
@@ -223,11 +294,32 @@ export default function IssuerPage() {
                                 </div>
                             )}
 
-                            <div className="act-row">
-                                <button className="zv-btn btn-green" onClick={handleSealAndProve} disabled={isLoading}>
-                                    ⚡ {isLoading ? "Processing..." : "Generate ZK Proof"}
-                                </button>
-                                <span style={{ fontSize: "11px", color: "var(--text3)" }}>Est. ~0.8s · Noir Barretenberg</span>
+                            {anchoredTx && (
+                                <div className="code-block" style={{ marginTop: '10px' }}>
+                                    <div className="cb-label">On-Chain EVM Transaction Hash</div>
+                                    <div className="cb-val">{anchoredTx}</div>
+                                </div>
+                            )}
+
+                            <div className="act-row" style={{ marginTop: '15px' }}>
+                                {!zkProof ? (
+                                    <button className="zv-btn btn-green" onClick={handleSealAndProve} disabled={isLoading}>
+                                        ⚡ {isLoading ? "Processing..." : "Generate ZK Proof"}
+                                    </button>
+                                ) : !anchoredTx ? (
+                                    <button
+                                        className="zv-btn btn-sim"
+                                        onClick={handleAnchorOnChain}
+                                        disabled={isAnchoring}
+                                        style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text)", width: "100%" }}
+                                    >
+                                        ⛓️ {isAnchoring ? "Broadcasting..." : "Confirm On-Chain Anchor"}
+                                    </button>
+                                ) : (
+                                    <button className="zv-btn btn-green" disabled style={{ opacity: 0.8, width: "100%" }}>
+                                        ✓ Successfully Anchored On-Chain
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
